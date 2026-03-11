@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    @apply bg-stone text-midnight;
+  }
+
+  * {
+    @apply box-border;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gold hover:bg-gold-dark text-midnight font-semibold px-6 py-3 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-midnight hover:bg-midnight-light text-stone font-semibold px-6 py-3 rounded-lg transition-colors duration-200;
+  }
+
+  .btn-outline {
+    @apply border-2 border-cerulean text-cerulean hover:bg-cerulean hover:text-white font-semibold px-6 py-3 rounded-lg transition-colors duration-200;
+  }
+
+  .form-label {
+    @apply block text-sm font-semibold text-midnight mb-1.5;
+  }
+
+  .form-input {
+    @apply w-full rounded-lg border border-stone bg-white px-4 py-3 text-midnight placeholder-gray-400 focus:border-cerulean focus:outline-none focus:ring-2 focus:ring-cerulean/20 transition-colors duration-200;
+  }
+
+  .form-textarea {
+    @apply w-full rounded-lg border border-stone bg-white px-4 py-3 text-midnight placeholder-gray-400 focus:border-cerulean focus:outline-none focus:ring-2 focus:ring-cerulean/20 transition-colors duration-200 resize-y;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-stone/60 p-6;
+  }
+}
