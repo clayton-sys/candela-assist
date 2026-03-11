@@ -5,35 +5,54 @@ interface DocumentTypeCardProps {
   onSelect: (id: string) => void;
 }
 
-const colorMap: Record<string, string> = {
-  cerulean: "border-cerulean hover:bg-cerulean/5 hover:border-cerulean",
-  gold: "border-gold hover:bg-gold/5 hover:border-gold",
-  midnight: "border-midnight hover:bg-midnight/5 hover:border-midnight",
-};
-
-const iconBgMap: Record<string, string> = {
-  cerulean: "bg-cerulean/10",
-  gold: "bg-gold/10",
-  midnight: "bg-midnight/10",
+const eyebrowMap: Record<string, string> = {
+  "progress-note": "CLIENT CONTACT",
+  "referral-letter": "WARM REFERRAL",
+  "safety-plan": "CRISIS PLANNING",
 };
 
 export default function DocumentTypeCard({ doc, onSelect }: DocumentTypeCardProps) {
+  const eyebrow = eyebrowMap[doc.id] ?? "DOCUMENT TYPE";
+
   return (
     <button
       onClick={() => onSelect(doc.id)}
-      className={`card text-left cursor-pointer border-2 transition-all duration-200 hover:shadow-md group ${colorMap[doc.color]}`}
+      className="group text-left cursor-pointer bg-stone rounded-xl shadow-sm border-l-4 border-gold p-5 transition-all duration-200 hover:shadow-md hover:border-gold-dark hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
     >
-      <div className={`w-12 h-12 rounded-xl ${iconBgMap[doc.color]} flex items-center justify-center text-2xl mb-4`}>
+      {/* Eyebrow */}
+      <p className="eyebrow mb-3">{eyebrow}</p>
+
+      {/* Icon */}
+      <div className="w-10 h-10 rounded-lg bg-midnight flex items-center justify-center text-xl mb-3 flex-shrink-0">
         {doc.icon}
       </div>
-      <h3 className="text-lg font-bold text-midnight mb-2 group-hover:text-cerulean transition-colors">
+
+      {/* Title */}
+      <h3 className="font-fraunces font-medium text-lg text-midnight mb-2 leading-tight">
         {doc.title}
       </h3>
-      <p className="text-sm text-gray-600 leading-relaxed">{doc.description}</p>
-      <div className="mt-4 text-sm font-semibold text-cerulean flex items-center gap-1">
+
+      {/* Description */}
+      <p className="font-jost font-light text-midnight/70 text-sm leading-[1.7]">
+        {doc.description}
+      </p>
+
+      {/* CTA */}
+      <div className="mt-4 font-jost font-semibold text-sm text-cerulean tracking-[0.04em] uppercase flex items-center gap-1.5 group-hover:gap-2.5 transition-all duration-150">
         Generate draft
-        <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5l7 7-7 7"
+          />
         </svg>
       </div>
     </button>

@@ -85,26 +85,27 @@ export default function Home() {
         <PrivacyNotice onAcknowledge={handlePrivacyAcknowledge} />
       )}
 
+      {/* ── Home state — dark gradient, full bleed ── */}
       {appState === "home" && (
-        <div>
-          {/* Hero */}
-          <div className="text-center mb-12 pt-4">
-            <h1 className="text-4xl sm:text-5xl font-bold text-midnight mb-4 tracking-tight">
-              Professional documentation,{" "}
-              <span className="text-gold">drafted in seconds</span>
-            </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              Candela Assist helps case managers generate high-quality progress
-              notes, referral letters, and safety plans — without entering any
-              identifying client information.
-            </p>
-          </div>
+        <div className="bg-midnight-gradient">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-14 pb-24">
+            {/* Hero — left aligned */}
+            <div className="mb-14 max-w-2xl">
+              <h1 className="font-fraunces font-medium text-4xl sm:text-5xl text-stone mb-5 leading-tight tracking-tight">
+                Professional documentation,{" "}
+                <span className="font-fraunces font-medium italic text-gold">
+                  drafted in seconds
+                </span>
+              </h1>
+              <p className="font-jost font-light text-stone/70 text-lg leading-[1.7]">
+                Candela Assist helps case managers generate high-quality
+                progress notes, referral letters, and safety plans — without
+                entering any identifying client information.
+              </p>
+            </div>
 
-          {/* Document Type Selector */}
-          <div className="mb-4">
-            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-4">
-              Choose a document type
-            </h2>
+            {/* Document type cards */}
+            <p className="eyebrow mb-5">Choose a document type</p>
             <div className="grid sm:grid-cols-3 gap-4">
               {DOCUMENT_TYPES.map((doc) => (
                 <DocumentTypeCard
@@ -114,28 +115,37 @@ export default function Home() {
                 />
               ))}
             </div>
-          </div>
 
-          {/* Privacy callout */}
-          <div className="mt-10 bg-midnight rounded-2xl p-6 flex gap-4 items-start">
-            <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center text-xl flex-shrink-0">
-              🔒
-            </div>
-            <div>
-              <h3 className="font-bold text-stone mb-1">Privacy-first by design</h3>
-              <p className="text-stone/70 text-sm leading-relaxed">
-                No client data is ever stored. No accounts required. You are the
-                PII filter — describe situations in general terms, never with
-                names, case numbers, or identifying details. The tool generates
-                a draft; you paste it into your own system.
-              </p>
+            {/* Privacy callout */}
+            <div className="mt-12 bg-stone rounded-xl border-l-4 border-cerulean p-5 flex gap-4 items-start">
+              <svg
+                className="w-5 h-5 text-cerulean flex-shrink-0 mt-0.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              <div>
+                <p className="eyebrow mb-2">Privacy-first by design</p>
+                <p className="font-jost font-light text-midnight/70 text-sm leading-[1.7]">
+                  No client data is ever stored. No accounts required. You are
+                  the PII filter — describe situations in general terms, never
+                  with names, case numbers, or identifying details. The tool
+                  generates a draft; you paste it into your own system.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* ── Form state — stone bg (body default) ── */}
       {appState === "form" && selectedDocType && (
-        <div className="max-w-2xl">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
           <DocumentForm
             docType={selectedDocType}
             onSubmit={handleFormSubmit}
@@ -143,20 +153,31 @@ export default function Home() {
             onBack={handleReset}
           />
           {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            <div className="mt-4 p-4 bg-error/10 border border-error/30 rounded-xl font-jost text-error text-sm">
               {error}
             </div>
           )}
+          <div className="mt-6 border-t border-stone/60 pt-4">
+            <a
+              href="/input"
+              className="font-mono text-[11px] text-cerulean hover:text-cerulean-dark transition-colors uppercase tracking-[0.18em]"
+            >
+              Prefer to dictate or paste? Use Quick Notes →
+            </a>
+          </div>
         </div>
       )}
 
+      {/* ── Output state — stone bg (body default) ── */}
       {appState === "output" && draft && selectedDocType && (
-        <OutputDisplay
-          draft={draft}
-          docTitle={selectedDocType.title}
-          onReset={handleReset}
-          onEdit={handleEditInputs}
-        />
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+          <OutputDisplay
+            draft={draft}
+            docTitle={selectedDocType.title}
+            onReset={handleReset}
+            onEdit={handleEditInputs}
+          />
+        </div>
       )}
     </>
   );

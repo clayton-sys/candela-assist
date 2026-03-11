@@ -36,12 +36,13 @@ export default function DocumentForm({
 
   return (
     <div>
+      {/* Back link */}
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-sm text-gray-500 hover:text-midnight mb-6 transition-colors"
+        className="flex items-center gap-2 font-mono text-[11px] text-cerulean hover:text-cerulean-dark uppercase tracking-[0.18em] mb-8 transition-colors"
       >
         <svg
-          className="w-4 h-4"
+          className="w-3.5 h-3.5"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -56,18 +57,38 @@ export default function DocumentForm({
         Back to document types
       </button>
 
+      {/* Title */}
       <div className="flex items-center gap-3 mb-2">
-        <span className="text-3xl">{docType.icon}</span>
-        <h2 className="text-2xl font-bold text-midnight">{docType.title}</h2>
+        <span className="text-3xl" aria-hidden="true">
+          {docType.icon}
+        </span>
+        <h2 className="font-fraunces font-medium text-2xl text-midnight">
+          {docType.title}
+        </h2>
       </div>
-      <p className="text-gray-600 mb-8">{docType.description}</p>
+      <p className="font-jost font-light text-midnight/60 mb-8 leading-[1.7]">
+        {docType.description}
+      </p>
 
-      <div className="bg-cerulean/10 border border-cerulean/30 rounded-xl p-4 mb-8 flex gap-3">
-        <span className="text-cerulean mt-0.5 flex-shrink-0">🔒</span>
-        <p className="text-sm text-midnight/80">
-          <strong className="text-midnight">Privacy reminder:</strong> Describe
-          clients in neutral, non-identifying terms. No names, dates of birth,
-          or case numbers.
+      {/* Privacy callout */}
+      <div className="bg-cerulean/8 border-l-4 border-cerulean rounded-r-xl p-4 mb-8 flex gap-3">
+        <svg
+          className="w-4 h-4 text-cerulean mt-0.5 flex-shrink-0"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          aria-hidden="true"
+        >
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        <p className="font-jost text-sm text-midnight/80 leading-[1.7]">
+          <strong className="font-semibold text-midnight">
+            Privacy reminder:
+          </strong>{" "}
+          Describe clients in neutral, non-identifying terms. No names, dates of
+          birth, or case numbers.
         </p>
       </div>
 
@@ -140,13 +161,11 @@ export default function DocumentForm({
                 Generating draft…
               </>
             ) : (
-              <>
-                ✨ Generate Draft
-              </>
+              <>Generate Draft</>
             )}
           </button>
           {!allRequiredFilled && (
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="font-mono text-[10px] text-cerulean/60 uppercase tracking-[0.18em] mt-2">
               Fill in all required fields to generate.
             </p>
           )}

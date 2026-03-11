@@ -25,44 +25,44 @@ export default function OutputDisplay({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      {/* Action row */}
+      <div className="flex items-start justify-between mb-8 gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-midnight">Draft Generated</h2>
-          <p className="text-gray-500 text-sm mt-0.5">{docTitle}</p>
+          <p className="eyebrow mb-1">Draft generated</p>
+          <h2 className="font-fraunces font-medium text-2xl text-midnight">
+            {docTitle}
+          </h2>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={onEdit}
-            className="btn-outline text-sm px-4 py-2"
-          >
-            ← Edit Inputs
+        <div className="flex gap-2 flex-shrink-0">
+          <button onClick={onEdit} className="btn-outline text-sm px-4 py-2">
+            ← Edit
           </button>
           <button
             onClick={onReset}
             className="btn-secondary text-sm px-4 py-2"
           >
-            New Document
+            New
           </button>
         </div>
       </div>
 
-      <div className="bg-white border border-stone rounded-xl overflow-hidden shadow-sm">
+      {/* Output card */}
+      <div className="bg-stone rounded-xl shadow-sm overflow-hidden">
+        {/* Card header bar */}
         <div className="bg-midnight px-5 py-3 flex items-center justify-between">
-          <span className="text-stone/70 text-sm font-medium">
-            AI-Generated Draft — Review Before Use
-          </span>
+          <p className="eyebrow text-cerulean">Your Draft</p>
           <button
             onClick={handleCopy}
-            className={`flex items-center gap-2 text-sm font-semibold px-4 py-1.5 rounded-lg transition-all duration-200 ${
+            className={`flex items-center gap-1.5 font-jost font-semibold text-xs px-4 py-1.5 rounded-lg tracking-[0.04em] uppercase transition-all duration-200 ${
               copied
-                ? "bg-green-500 text-white"
-                : "bg-gold text-midnight hover:bg-gold-dark"
+                ? "bg-gold text-midnight"
+                : "border border-cerulean text-cerulean hover:bg-cerulean hover:text-white"
             }`}
           >
             {copied ? (
               <>
                 <svg
-                  className="w-4 h-4"
+                  className="w-3.5 h-3.5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -70,16 +70,16 @@ export default function OutputDisplay({
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
+                    strokeWidth={2.5}
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-                Copied!
+                Copied
               </>
             ) : (
               <>
                 <svg
-                  className="w-4 h-4"
+                  className="w-3.5 h-3.5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -97,19 +97,36 @@ export default function OutputDisplay({
           </button>
         </div>
 
-        <div className="p-6">
-          <pre className="whitespace-pre-wrap font-sans text-midnight text-sm leading-relaxed">
+        {/* Draft body */}
+        <div className="p-6 sm:p-8">
+          <pre className="whitespace-pre-wrap font-jost font-light text-midnight text-sm leading-[1.7]">
             {draft}
           </pre>
         </div>
       </div>
 
-      <div className="mt-4 p-4 bg-gold/10 border border-gold/30 rounded-xl flex gap-3">
-        <span className="text-gold flex-shrink-0 mt-0.5">⚠️</span>
-        <p className="text-sm text-midnight/80">
-          <strong className="text-midnight">Always review before use.</strong>{" "}
-          AI-generated drafts may contain errors or miss important context.
-          Edit as needed before entering into your case management system.
+      {/* Review reminder */}
+      <div className="mt-5 p-4 bg-gold/10 border border-gold/30 rounded-xl flex gap-3">
+        <svg
+          className="w-4 h-4 text-gold-dark flex-shrink-0 mt-0.5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+          />
+        </svg>
+        <p className="font-jost font-light text-sm text-midnight/80 leading-[1.7]">
+          <strong className="font-semibold text-midnight">
+            Always review before use.
+          </strong>{" "}
+          AI-generated drafts may contain errors or miss important context. Edit
+          as needed before entering into your case management system.
         </p>
       </div>
     </div>

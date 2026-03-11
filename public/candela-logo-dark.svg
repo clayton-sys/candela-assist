@@ -1,0 +1,23 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" fill="none">
+  <!-- Rays -->
+  <line x1="152" y1="58" x2="192" y2="18" stroke="#1B2B3A" stroke-width="3" stroke-linecap="round" opacity="1"/>
+  <line x1="162" y1="72" x2="210" y2="52" stroke="#1B2B3A" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+  <line x1="140" y1="50" x2="148" y2="8" stroke="#1B2B3A" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+  <line x1="170" y1="90" x2="222" y2="82" stroke="#1B2B3A" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+  <line x1="126" y1="46" x2="118" y2="4" stroke="#1B2B3A" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+  <line x1="172" y1="110" x2="226" y2="116" stroke="#1B2B3A" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>
+  <line x1="112" y1="46" x2="90" y2="10" stroke="#1B2B3A" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>
+  <!-- Terminal dots -->
+  <circle cx="194" cy="16" r="3" fill="#1B2B3A" opacity="0.85"/>
+  <circle cx="212" cy="50" r="2.5" fill="#1B2B3A" opacity="0.7"/>
+  <circle cx="149" cy="6" r="2.5" fill="#1B2B3A" opacity="0.7"/>
+  <!-- Cerulean inner arc -->
+  <path d="M 154 170 A 56 56 0 1 1 154 70" stroke="#3A6B8A" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.45"/>
+  <!-- Primary C arc -->
+  <path d="M 162 180 A 68 68 0 1 1 162 60" stroke="#1B2B3A" stroke-width="16" stroke-linecap="round" fill="none"/>
+  <!-- Terminal caps -->
+  <circle cx="162" cy="60" r="8" fill="#1B2B3A"/>
+  <circle cx="162" cy="180" r="8" fill="#1B2B3A"/>
+</svg>

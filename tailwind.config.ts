@@ -9,16 +9,25 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        midnight: "#1B1F2E",
-        gold: "#F5A623",
-        stone: "#E8E0D5",
-        cerulean: "#2E86AB",
-        "midnight-light": "#252A3D",
-        "gold-dark": "#D4891A",
-        "cerulean-dark": "#236E8A",
+        midnight: "#1B2B3A",
+        gold: "#E9C03A",
+        stone: "#EDE8DE",
+        cerulean: "#3A6B8A",
+        "midnight-deep": "#0e1e2a",
+        "midnight-light": "#243446",
+        "gold-dark": "#C9A020",
+        "cerulean-dark": "#2A5570",
+        error: "#D94F3D",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        fraunces: ["var(--font-fraunces)", "Georgia", "serif"],
+        jost: ["var(--font-jost)", "system-ui", "sans-serif"],
+        mono: ["var(--font-dm-mono)", "monospace"],
+        sans: ["var(--font-jost)", "system-ui", "sans-serif"],
+      },
+      backgroundImage: {
+        "midnight-gradient":
+          "linear-gradient(135deg, #0e1e2a 0%, #1B2B3A 100%)",
       },
     },
   },

@@ -9,14 +9,35 @@ const client = new Anthropic({
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { documentTypeId, values } = body as {
+    const {
+      mode = "structured",
+      documentTypeId,
+      values,
+      rawInput,
+    } = body as {
+      mode?: "structured" | "raw";
       documentTypeId: DocumentTypeId;
-      values: Record<string, string>;
+      values?: Record<string, string>;
+      rawInput?: string;
     };
 
-    if (!documentTypeId || !values) {
+    if (!documentTypeId) {
       return NextResponse.json(
-        { error: "Missing documentTypeId or values" },
+        { error: "Missing documentTypeId" },
+        { status: 400 }
+      );
+    }
+
+    if (mode === "raw" && !rawInput?.trim()) {
+      return NextResponse.json(
+        { error: "Missing rawInput for raw mode" },
+        { status: 400 }
+      );
+    }
+
+    if (mode === "structured" && !values) {
+      return NextResponse.json(
+        { error: "Missing values for structured mode" },
         { status: 400 }
       );
     }
@@ -29,7 +50,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userMessage = docType.userPromptTemplate(values);
+    const userMessage =
+      mode === "raw"
+        ? `The following are a case manager's raw notes from a client interaction. Extract the key information and produce a professional ${docType.title}.\n\nRaw notes:\n${rawInput}`
+        : docType.userPromptTemplate(values!);
 
     const message = await client.messages.create({
       model: "claude-sonnet-4-20250514",

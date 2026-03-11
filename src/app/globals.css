@@ -1,12 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font-jost), system-ui, sans-serif;
   }
 
   body {
@@ -20,30 +18,41 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-gold hover:bg-gold-dark text-midnight font-semibold px-6 py-3 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    font-family: var(--font-jost), system-ui, sans-serif;
+    @apply bg-gold hover:bg-gold-dark text-midnight font-semibold px-6 py-3 rounded-lg transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed tracking-[0.04em] uppercase text-sm;
   }
 
   .btn-secondary {
-    @apply bg-midnight hover:bg-midnight-light text-stone font-semibold px-6 py-3 rounded-lg transition-colors duration-200;
+    font-family: var(--font-jost), system-ui, sans-serif;
+    @apply bg-midnight hover:bg-midnight-light text-stone font-semibold px-6 py-3 rounded-lg transition-colors duration-200 tracking-[0.04em] uppercase text-sm;
   }
 
   .btn-outline {
-    @apply border-2 border-cerulean text-cerulean hover:bg-cerulean hover:text-white font-semibold px-6 py-3 rounded-lg transition-colors duration-200;
+    font-family: var(--font-jost), system-ui, sans-serif;
+    @apply border-2 border-cerulean text-cerulean hover:bg-cerulean hover:text-white font-semibold px-6 py-3 rounded-lg transition-colors duration-200 tracking-[0.04em] uppercase text-sm;
   }
 
   .form-label {
-    @apply block text-sm font-semibold text-midnight mb-1.5;
+    font-family: var(--font-fraunces), Georgia, serif;
+    @apply block font-medium text-sm text-midnight mb-1.5;
   }
 
   .form-input {
-    @apply w-full rounded-lg border border-stone bg-white px-4 py-3 text-midnight placeholder-gray-400 focus:border-cerulean focus:outline-none focus:ring-2 focus:ring-cerulean/20 transition-colors duration-200;
+    font-family: var(--font-jost), system-ui, sans-serif;
+    @apply w-full rounded-lg border border-stone/60 bg-white px-4 py-3 text-midnight placeholder-midnight/30 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20 transition-colors duration-200;
   }
 
   .form-textarea {
-    @apply w-full rounded-lg border border-stone bg-white px-4 py-3 text-midnight placeholder-gray-400 focus:border-cerulean focus:outline-none focus:ring-2 focus:ring-cerulean/20 transition-colors duration-200 resize-y;
+    font-family: var(--font-jost), system-ui, sans-serif;
+    @apply w-full rounded-lg border border-stone/60 bg-white px-4 py-3 text-midnight placeholder-midnight/30 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20 transition-colors duration-200 resize-y;
   }
 
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-stone/60 p-6;
+    @apply bg-stone rounded-xl shadow-sm border border-stone/60 p-6;
+  }
+
+  .eyebrow {
+    font-family: var(--font-dm-mono), monospace;
+    @apply text-[11px] text-cerulean uppercase tracking-[0.22em];
   }
 }
