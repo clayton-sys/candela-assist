@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getDocumentType, DocumentTypeId } from "@/lib/documentTypes";
+
+// Always dynamic — reads request headers (IP) and calls external APIs
+export const dynamic = "force-dynamic";
+
 import {
   checkRateLimit,
   MAX_RAW_INPUT_CHARS,
