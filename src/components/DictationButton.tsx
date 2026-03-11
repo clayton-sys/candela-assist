@@ -127,7 +127,7 @@ export default function DictationButton({
           />
           {/* Mic icon */}
           <svg
-            className="w-6 h-6 text-midnight relative z-10"
+            className="w-6 h-6 text-white relative z-10"
             fill="currentColor"
             viewBox="0 0 24 24"
             aria-hidden="true"

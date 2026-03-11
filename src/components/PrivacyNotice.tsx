@@ -34,7 +34,7 @@ export default function PrivacyNotice({ onAcknowledge }: PrivacyNoticeProps) {
         </div>
 
         {/* Content card */}
-        <div className="bg-white rounded-xl p-4 mb-5 border-l-4 border-cerulean">
+        <div className="bg-midnight/5 rounded-xl p-4 mb-5 border-l-4 border-cerulean">
           <p className="font-jost font-semibold text-midnight text-sm">
             Do not enter any identifying client information —
           </p>

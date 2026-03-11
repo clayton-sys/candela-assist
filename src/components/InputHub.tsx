@@ -115,7 +115,7 @@ export default function InputHub() {
                 className={`inline-flex items-center gap-1.5 rounded-full border-2 px-4 py-2 font-jost font-semibold text-xs tracking-[0.04em] uppercase transition-colors ${
                   isSelected
                     ? "border-gold bg-gold text-midnight"
-                    : "border-midnight/20 bg-white/60 text-midnight/70 hover:border-midnight/40 hover:text-midnight"
+                    : "border-midnight/20 bg-midnight/5 text-midnight/70 hover:border-midnight/40 hover:text-midnight"
                 }`}
               >
                 <span aria-hidden="true">{dt.icon}</span>
