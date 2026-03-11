@@ -118,8 +118,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ draft: content.text });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    console.error("Generate API error:", msg);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("Generate API error:", error);
+    return NextResponse.json(
+      { error: "Failed to generate draft. Please try again." },
+      { status: 500 }
+    );
   }
 }

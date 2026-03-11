@@ -26,39 +26,45 @@ export async function checkRateLimit(
     return { limited: false };
   }
 
-  // Dynamic imports — resolved at runtime, never at build time
-  const { Redis } = await import("@upstash/redis");
-  const { Ratelimit } = await import("@upstash/ratelimit");
+  try {
+    // Dynamic imports — resolved at runtime, never at build time
+    const { Redis } = await import("@upstash/redis");
+    const { Ratelimit } = await import("@upstash/ratelimit");
 
-  const redis = new Redis({ url, token });
+    const redis = new Redis({ url, token });
 
-  const [perMinute, perHour, perDay] = [
-    new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(5, "1 m"),
-      prefix: "rl:min",
-    }),
-    new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(20, "1 h"),
-      prefix: "rl:hr",
-    }),
-    new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(50, "1 d"),
-      prefix: "rl:day",
-    }),
-  ];
+    const [perMinute, perHour, perDay] = [
+      new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(5, "1 m"),
+        prefix: "rl:min",
+      }),
+      new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(20, "1 h"),
+        prefix: "rl:hr",
+      }),
+      new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(50, "1 d"),
+        prefix: "rl:day",
+      }),
+    ];
 
-  const [minResult, hrResult, dayResult] = await Promise.all([
-    perMinute.limit(identifier),
-    perHour.limit(identifier),
-    perDay.limit(identifier),
-  ]);
+    const [minResult, hrResult, dayResult] = await Promise.all([
+      perMinute.limit(identifier),
+      perHour.limit(identifier),
+      perDay.limit(identifier),
+    ]);
 
-  if (!minResult.success || !hrResult.success || !dayResult.success) {
-    return { limited: true, message: RATE_LIMIT_MESSAGE };
+    if (!minResult.success || !hrResult.success || !dayResult.success) {
+      return { limited: true, message: RATE_LIMIT_MESSAGE };
+    }
+
+    return { limited: false };
+  } catch (err) {
+    // Fail open — a Redis misconfiguration should never block document generation
+    console.error("Rate limit check failed, allowing request:", err);
+    return { limited: false };
   }
-
-  return { limited: false };
 }
