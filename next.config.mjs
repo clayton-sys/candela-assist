@@ -1,9 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Prevent Next.js from bundling these packages — use them as-is from node_modules.
-  // Required because @upstash/redis uses module-level code that fails during
-  // Next.js static build analysis.
-  serverExternalPackages: ["@upstash/redis", "@upstash/ratelimit"],
+  experimental: {
+    // Next.js 14 syntax (renamed to serverExternalPackages in Next.js 15).
+    // Prevents the bundler from trying to statically analyse these packages
+    // at build time — they are required from node_modules at runtime instead.
+    serverComponentsExternalPackages: ["@upstash/redis", "@upstash/ratelimit"],
+  },
 };
 
 export default nextConfig;
