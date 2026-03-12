@@ -49,7 +49,7 @@ export default function RootLayout({
               "linear-gradient(135deg, #0e1e2a 0%, #1B2B3A 45%, #3A6B8A 100%)",
           }}
         >
-          <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8 sm:py-10 flex items-center justify-between">
+          <div className="max-w-5xl mx-auto px-4 sm:px-8 py-14 sm:py-16 flex items-center justify-between">
             <a
               href="/"
               className="flex items-center gap-5 hover:opacity-80 transition-opacity"
@@ -57,12 +57,12 @@ export default function RootLayout({
               <Image
                 src="/candela-logo-primary.svg"
                 alt="Candela"
-                width={72}
-                height={72}
+                width={120}
+                height={120}
                 className="flex-shrink-0"
               />
               <div className="flex flex-col gap-1">
-                <span className="font-fraunces font-medium text-3xl sm:text-4xl text-stone leading-none tracking-tight">
+                <span className="font-fraunces font-medium text-5xl sm:text-6xl text-stone leading-none tracking-tight">
                   Candela
                 </span>
                 <span className="font-mono text-[11px] text-gold opacity-60 leading-tight tracking-[0.22em]">
