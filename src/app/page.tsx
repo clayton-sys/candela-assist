@@ -205,7 +205,7 @@ export default function HomePage() {
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           {/* Product name */}
-          <p className="font-fraunces font-medium text-5xl sm:text-6xl text-[#E9C03A] leading-none tracking-tight mb-5">
+          <p className="font-mono text-5xl sm:text-6xl text-[#E9C03A] uppercase tracking-[0.22em] leading-none mb-5">
             Candela Assist
           </p>
 
@@ -290,7 +290,7 @@ export default function HomePage() {
       <section id="academy" className="bg-[#EDE8DE] py-20 sm:py-28">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           {/* Product name */}
-          <p className="font-fraunces font-medium text-5xl sm:text-6xl text-[#3A6B8A] leading-none tracking-tight mb-5">
+          <p className="font-mono text-5xl sm:text-6xl text-[#3A6B8A] uppercase tracking-[0.22em] leading-none mb-5">
             Candela Academy
           </p>
 
@@ -357,7 +357,7 @@ export default function HomePage() {
       >
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           {/* Product name */}
-          <p className="font-fraunces font-medium text-5xl sm:text-6xl text-[#E9C03A] leading-none tracking-tight mb-5">
+          <p className="font-mono text-5xl sm:text-6xl text-[#E9C03A] uppercase tracking-[0.22em] leading-none mb-5">
             Candela Consulting
           </p>
 
