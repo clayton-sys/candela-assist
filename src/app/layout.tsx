@@ -49,23 +49,23 @@ export default function RootLayout({
               "linear-gradient(135deg, #0e1e2a 0%, #1B2B3A 45%, #3A6B8A 100%)",
           }}
         >
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-7 flex items-center justify-between">
+          <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8 sm:py-10 flex items-center justify-between">
             <a
               href="/"
-              className="flex items-center gap-4 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-5 hover:opacity-80 transition-opacity"
             >
               <Image
                 src="/candela-logo-primary.svg"
                 alt="Candela"
-                width={52}
-                height={52}
-                className="h-13 w-13 flex-shrink-0"
+                width={72}
+                height={72}
+                className="flex-shrink-0"
               />
-              <div className="flex flex-col gap-0.5">
-                <span className="font-fraunces font-medium text-2xl text-stone leading-tight tracking-tight">
+              <div className="flex flex-col gap-1">
+                <span className="font-fraunces font-medium text-3xl sm:text-4xl text-stone leading-none tracking-tight">
                   Candela
                 </span>
-                <span className="font-mono text-[10px] text-gold opacity-60 leading-tight tracking-[0.22em]">
+                <span className="font-mono text-[11px] text-gold opacity-60 leading-tight tracking-[0.22em]">
                   La luz que guía
                 </span>
               </div>
@@ -74,7 +74,7 @@ export default function RootLayout({
               href="https://candela.education"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-jost text-stone/50 hover:text-gold text-sm transition-colors"
+              className="font-jost text-stone/50 hover:text-gold text-sm transition-colors hidden sm:block"
             >
               candela.education
             </a>
