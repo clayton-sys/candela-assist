@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
         : docType.userPromptTemplate(values!);
 
     const message = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 1024,
       system: docType.systemPrompt,
       messages: [{ role: "user", content: userMessage }],

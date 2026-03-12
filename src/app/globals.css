@@ -56,3 +56,25 @@
     @apply text-[11px] text-cerulean uppercase tracking-[0.22em];
   }
 }
+
+/* Print / PDF export */
+@media print {
+  .print-hidden {
+    display: none !important;
+  }
+
+  @page {
+    size: landscape;
+    margin: 0.5in;
+  }
+
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .break-after-page {
+    page-break-after: always;
+  }
+}
