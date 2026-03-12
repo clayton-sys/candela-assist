@@ -1,306 +1,476 @@
-import Image from "next/image";
 import Link from "next/link";
+import { Zap, BookOpen, Lightbulb } from "lucide-react";
 
 export const metadata = {
-  title: "Candela Assist — AI Documentation for Nonprofit Case Managers",
+  title: "Candela — AI for Nonprofits",
   description:
-    "Help your case managers write professional notes, referral letters, and safety plans in minutes. No account required. No client data stored.",
+    "Candela builds AI tools, educational content, and consulting services purpose-built for nonprofit case managers and the organizations that support them.",
 };
 
-export default function LandingPage() {
+export default function HomePage() {
   return (
     <div className="font-jost">
-      {/* ── HERO ─────────────────────────────────────────────────────────── */}
+
+      {/* ── SECTION 1: HERO ──────────────────────────────────────────────── */}
       <section
         style={{
-          background: "linear-gradient(135deg, #0e1e2a 0%, #1B2B3A 60%, #243446 100%)",
+          background: "linear-gradient(135deg, #0e1e2a 0%, #1B2B3A 100%)",
         }}
         className="relative overflow-hidden"
       >
-        {/* Subtle texture overlay */}
+        {/* Subtle radial texture */}
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.04]"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 20% 50%, #E9C03A 0%, transparent 50%), radial-gradient(circle at 80% 20%, #3A6B8A 0%, transparent 40%)",
+              "radial-gradient(circle at 15% 60%, #E9C03A 0%, transparent 45%), radial-gradient(circle at 85% 15%, #3A6B8A 0%, transparent 40%)",
           }}
           aria-hidden="true"
         />
 
-        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 pt-20 pb-24 sm:pt-28 sm:pb-32">
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 pt-20 pb-24 sm:pt-28 sm:pb-32">
           {/* Eyebrow */}
           <p className="font-mono text-[11px] text-[#3A6B8A] uppercase tracking-[0.22em] mb-6">
-            AI tools for case managers
+            AI for nonprofits
           </p>
 
           {/* Heading */}
-          <h1 className="font-fraunces font-medium text-4xl sm:text-5xl lg:text-6xl text-[#EDE8DE] leading-[1.1] tracking-tight mb-6">
-            Documentation that works{" "}
-            <span className="font-fraunces italic text-[#E9C03A]">
-              as hard as you do.
-            </span>
+          <h1 className="font-fraunces font-medium text-4xl sm:text-5xl lg:text-6xl text-[#EDE8DE] leading-[1.1] tracking-tight mb-6 max-w-3xl">
+            The tools, training, and strategy nonprofits need to work smarter.
           </h1>
 
           {/* Subheading */}
-          <p className="font-jost font-light text-lg sm:text-xl text-[#EDE8DE]/70 leading-[1.7] max-w-2xl mb-10">
-            Candela Assist helps nonprofit case managers write professional case
-            notes, referral letters, and safety plans in minutes — not hours.
+          <p className="font-jost font-light text-lg sm:text-xl text-[#EDE8DE]/70 leading-[1.75] max-w-2xl mb-10">
+            Candela builds AI tools, educational content, and consulting
+            services purpose-built for nonprofit case managers and the
+            organizations that support them.
           </p>
 
-          {/* CTA buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-10">
-            <Link
-              href="/select"
-              className="inline-flex items-center justify-center gap-2 bg-[#E9C03A] text-[#1B2B3A] font-jost font-semibold text-sm uppercase tracking-[0.06em] px-7 py-3.5 rounded-lg hover:bg-[#C9A020] transition-colors duration-200"
-            >
-              Try It Free
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-            <a
-              href="#how-it-works"
-              className="inline-flex items-center justify-center gap-2 border-2 border-[#3A6B8A] text-[#3A6B8A] font-jost font-semibold text-sm uppercase tracking-[0.06em] px-7 py-3.5 rounded-lg hover:bg-[#3A6B8A] hover:text-white transition-colors duration-200"
-            >
-              See How It Works
-            </a>
-          </div>
-
-          {/* Trust line */}
-          <p className="font-mono text-[10px] text-[#EDE8DE]/30 tracking-[0.18em] uppercase">
-            No account required · No client data stored · Built for nonprofits
+          {/* Tagline */}
+          <p className="font-mono text-[11px] text-[#E9C03A] uppercase tracking-[0.22em]">
+            La luz que guía
           </p>
         </div>
       </section>
 
-      {/* ── PROBLEM ──────────────────────────────────────────────────────── */}
+      {/* ── SECTION 2: THREE PRODUCT CARDS ───────────────────────────────── */}
       <section className="bg-[#EDE8DE] py-20 sm:py-28">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
           {/* Eyebrow */}
           <p className="font-mono text-[11px] text-[#3A6B8A] uppercase tracking-[0.22em] mb-5">
-            The problem
+            The platform
           </p>
 
           {/* Heading */}
-          <h2 className="font-fraunces font-medium text-3xl sm:text-4xl lg:text-5xl text-[#1B2B3A] leading-[1.15] tracking-tight mb-12">
-            Case managers spend hours on documentation.{" "}
-            <span className="font-fraunces italic">
-              Time that should go to clients.
-            </span>
+          <h2 className="font-fraunces font-normal text-3xl sm:text-4xl text-[#1B2B3A] leading-[1.2] tracking-tight mb-12">
+            Three ways Candela serves your organization.
           </h2>
 
-          {/* Stat cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {[
-              { stat: "30–45 min", unit: "per case note", label: "spent writing after every client interaction" },
-              { stat: "6–8 hrs", unit: "per week", label: "lost to paperwork that could go to direct service" },
-              { stat: "#1 reason", unit: "for burnout", label: "administrative burden cited by nonprofit staff" },
-            ].map(({ stat, unit, label }) => (
-              <div
-                key={unit}
-                className="bg-white rounded-xl p-6 border-t-4 border-[#E9C03A] shadow-sm"
+          {/* Cards grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+
+            {/* ── Card 1: Candela Assist ── */}
+            <div className="bg-white rounded-xl shadow-md border-t-4 border-[#E9C03A] p-7 flex flex-col">
+              {/* Icon */}
+              <div className="w-10 h-10 rounded-lg bg-[#1B2B3A] flex items-center justify-center mb-5">
+                <Zap className="w-5 h-5 text-[#E9C03A]" />
+              </div>
+
+              {/* Eyebrow */}
+              <p className="font-mono text-[10px] text-[#3A6B8A] uppercase tracking-[0.22em] mb-2">
+                AI Tools
+              </p>
+
+              {/* Title */}
+              <h3 className="font-fraunces font-semibold text-xl text-[#1B2B3A] mb-3">
+                Candela Assist
+              </h3>
+
+              {/* Description */}
+              <p className="font-jost font-light text-sm text-[#1B2B3A]/60 leading-[1.7] mb-5 flex-1">
+                AI-powered documentation tools for nonprofit case managers.
+                Write professional case notes, referral letters, and safety
+                plans in minutes — not hours.
+              </p>
+
+              {/* Status badge */}
+              <div className="mb-5">
+                <span className="inline-block font-mono text-[9px] uppercase tracking-[0.18em] bg-[#E9C03A] text-[#1B2B3A] px-3 py-1 rounded-full">
+                  Available Now
+                </span>
+              </div>
+
+              {/* CTA */}
+              <Link
+                href="/select"
+                className="inline-flex items-center justify-center gap-2 bg-[#1B2B3A] text-[#E9C03A] font-jost font-semibold text-xs uppercase tracking-[0.08em] px-5 py-3 rounded-lg hover:bg-[#0e1e2a] transition-colors duration-200"
               >
-                <p className="font-fraunces font-medium text-3xl text-[#1B2B3A] leading-none mb-1">
-                  {stat}
+                Try It Free
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+
+            {/* ── Card 2: Candela Academy ── */}
+            <div className="bg-white rounded-xl shadow-md border-t-4 border-[#E9C03A] p-7 flex flex-col">
+              {/* Icon */}
+              <div className="w-10 h-10 rounded-lg bg-[#3A6B8A] flex items-center justify-center mb-5">
+                <BookOpen className="w-5 h-5 text-white" />
+              </div>
+
+              {/* Eyebrow */}
+              <p className="font-mono text-[10px] text-[#3A6B8A] uppercase tracking-[0.22em] mb-2">
+                Training
+              </p>
+
+              {/* Title */}
+              <h3 className="font-fraunces font-semibold text-xl text-[#1B2B3A] mb-3">
+                Candela Academy
+              </h3>
+
+              {/* Description */}
+              <p className="font-jost font-light text-sm text-[#1B2B3A]/60 leading-[1.7] mb-5 flex-1">
+                Video training library for case managers navigating HCV, SNAP,
+                CCAP, Medicaid, TANF, WIOA, and other complex benefits programs.
+              </p>
+
+              {/* Status badge */}
+              <div className="mb-5">
+                <span className="inline-block font-mono text-[9px] uppercase tracking-[0.18em] bg-[#3A6B8A] text-white px-3 py-1 rounded-full">
+                  Coming Soon
+                </span>
+              </div>
+
+              {/* CTA */}
+              <a
+                href="mailto:hello@candela.education"
+                className="inline-flex items-center justify-center gap-2 bg-[#3A6B8A] text-white font-jost font-semibold text-xs uppercase tracking-[0.08em] px-5 py-3 rounded-lg hover:bg-[#2A5570] transition-colors duration-200"
+              >
+                Join the Waitlist
+              </a>
+            </div>
+
+            {/* ── Card 3: Candela Consulting ── */}
+            <div className="bg-white rounded-xl shadow-md border-t-4 border-[#E9C03A] p-7 flex flex-col">
+              {/* Icon */}
+              <div className="w-10 h-10 rounded-lg bg-[#1B2B3A] flex items-center justify-center mb-5">
+                <Lightbulb className="w-5 h-5 text-[#E9C03A]" />
+              </div>
+
+              {/* Eyebrow */}
+              <p className="font-mono text-[10px] text-[#3A6B8A] uppercase tracking-[0.22em] mb-2">
+                Consulting
+              </p>
+
+              {/* Title */}
+              <h3 className="font-fraunces font-semibold text-xl text-[#1B2B3A] mb-3">
+                Candela Consulting
+              </h3>
+
+              {/* Description */}
+              <p className="font-jost font-light text-sm text-[#1B2B3A]/60 leading-[1.7] mb-5 flex-1">
+                Strategy and implementation for nonprofits ready to leverage AI.
+                AI readiness assessments, implementation sprints, and ongoing
+                advisory engagements.
+              </p>
+
+              {/* Status badge */}
+              <div className="mb-5">
+                <span className="inline-block font-mono text-[9px] uppercase tracking-[0.18em] bg-[#1B2B3A] text-[#EDE8DE] px-3 py-1 rounded-full">
+                  Accepting Clients
+                </span>
+              </div>
+
+              {/* CTA */}
+              <a
+                href="mailto:hello@candela.education"
+                className="inline-flex items-center justify-center gap-2 bg-[#1B2B3A] text-[#EDE8DE] font-jost font-semibold text-xs uppercase tracking-[0.08em] px-5 py-3 rounded-lg hover:bg-[#0e1e2a] transition-colors duration-200"
+              >
+                Start a Conversation
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 3: CANDELA ASSIST DETAIL ─────────────────────────────── */}
+      <section
+        id="assist"
+        style={{
+          background: "linear-gradient(135deg, #0e1e2a 0%, #1B2B3A 100%)",
+        }}
+        className="py-20 sm:py-28"
+      >
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          {/* Eyebrow */}
+          <p className="font-mono text-[11px] text-[#E9C03A] uppercase tracking-[0.22em] mb-5">
+            Candela Assist
+          </p>
+
+          {/* Heading */}
+          <h2 className="font-fraunces font-normal text-3xl sm:text-4xl lg:text-5xl text-[#EDE8DE] leading-[1.15] tracking-tight mb-12">
+            Documentation that works as hard as you do.
+          </h2>
+
+          {/* Two-column layout */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-12 sm:gap-16">
+
+            {/* Left: body + sub-products */}
+            <div>
+              <p className="font-jost font-light text-[#EDE8DE]/70 leading-[1.8] mb-10">
+                Case managers spend 30–45 minutes writing a single progress
+                note. Multiply that across a full caseload and documentation
+                becomes the job — leaving less time for the people who need
+                help. Candela Assist changes that. Speak or paste your notes
+                after a meeting and receive a professional draft in seconds.
+              </p>
+
+              {/* Sub-product rows */}
+              <div className="flex flex-col gap-6">
+                {/* Row 1 — available */}
+                <div className="border-l-2 border-[#E9C03A] pl-5">
+                  <p className="font-mono text-[10px] text-[#E9C03A] uppercase tracking-[0.2em] mb-1">
+                    Case Manager App
+                  </p>
+                  <p className="font-fraunces font-medium text-lg text-[#EDE8DE] mb-1">
+                    Documentation Assistant
+                  </p>
+                  <p className="font-jost font-light text-xs text-[#EDE8DE]/50 mb-2">
+                    Available now
+                  </p>
+                  <Link
+                    href="/select"
+                    className="font-mono text-[11px] text-[#3A6B8A] hover:text-[#EDE8DE] uppercase tracking-[0.18em] transition-colors duration-200"
+                  >
+                    Open the app →
+                  </Link>
+                </div>
+
+                {/* Row 2 — coming soon */}
+                <div className="border-l-2 border-[#3A6B8A]/40 pl-5">
+                  <p className="font-mono text-[10px] text-[#3A6B8A] uppercase tracking-[0.2em] mb-1">
+                    Grant Writers App
+                  </p>
+                  <p className="font-fraunces font-medium text-lg text-[#EDE8DE]/50 mb-1">
+                    Grant Report Writing Assistant
+                  </p>
+                  <p className="font-jost font-light text-xs text-[#EDE8DE]/30">
+                    Coming soon
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: feature pills */}
+            <div className="flex flex-wrap gap-3 content-start">
+              {[
+                "Voice Dictation",
+                "DAP Progress Notes",
+                "Referral Letters",
+                "Safety Plan Summaries",
+                "Transcript Review",
+                "Privacy First",
+              ].map((pill) => (
+                <span
+                  key={pill}
+                  className="font-mono text-[10px] text-[#1B2B3A] bg-[#EDE8DE] uppercase tracking-[0.14em] px-4 py-2 rounded-full"
+                >
+                  {pill}
+                </span>
+              ))}
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 4: CANDELA ACADEMY DETAIL ────────────────────────────── */}
+      <section id="academy" className="bg-[#EDE8DE] py-20 sm:py-28">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          {/* Eyebrow */}
+          <p className="font-mono text-[11px] text-[#3A6B8A] uppercase tracking-[0.22em] mb-5">
+            Candela Academy
+          </p>
+
+          {/* Heading */}
+          <h2 className="font-fraunces font-normal text-3xl sm:text-4xl lg:text-5xl text-[#1B2B3A] leading-[1.15] tracking-tight mb-6">
+            Know the programs. Serve the people.
+          </h2>
+
+          {/* Body */}
+          <p className="font-jost font-light text-[#1B2B3A]/70 leading-[1.8] max-w-2xl mb-12">
+            Case managers navigate some of the most complex programs in the
+            social safety net. Candela Academy is a video training library
+            built to help frontline staff actually understand these programs —
+            not just process paperwork.
+          </p>
+
+          {/* Topic cards 2×3 grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+            {[
+              { acronym: "HCV", name: "Housing Choice Voucher Program" },
+              { acronym: "SNAP", name: "Supplemental Nutrition Assistance" },
+              { acronym: "CCAP", name: "Colorado Child Care Assistance" },
+              { acronym: "Medicaid", name: "Colorado Health Coverage" },
+              { acronym: "TANF", name: "Temporary Assistance for Needy Families" },
+              { acronym: "WIOA", name: "Workforce Innovation and Opportunity Act" },
+            ].map(({ acronym, name }) => (
+              <div
+                key={acronym}
+                className="bg-white rounded-xl border-l-4 border-[#3A6B8A] px-5 py-4"
+              >
+                <p className="font-mono text-[10px] text-[#3A6B8A] uppercase tracking-[0.2em] mb-1">
+                  {acronym}
                 </p>
-                <p className="font-mono text-[10px] text-[#3A6B8A] uppercase tracking-[0.18em] mb-3">
-                  {unit}
-                </p>
-                <p className="font-jost text-sm text-[#1B2B3A]/60 leading-[1.6]">
-                  {label}
+                <p className="font-jost font-light text-sm text-[#1B2B3A]/70 leading-[1.5]">
+                  {name}
                 </p>
               </div>
             ))}
           </div>
+
+          {/* Waitlist CTA */}
+          <div className="border-t border-[#1B2B3A]/10 pt-10">
+            <p className="font-jost font-light text-[#1B2B3A]/60 text-sm mb-6">
+              Candela Academy is in development. Join the waitlist to be
+              notified at launch.
+            </p>
+            <a
+              href="mailto:hello@candela.education"
+              className="inline-flex items-center justify-center gap-2 bg-[#3A6B8A] text-white font-jost font-semibold text-xs uppercase tracking-[0.08em] px-6 py-3 rounded-lg hover:bg-[#2A5570] transition-colors duration-200"
+            >
+              Join the Waitlist
+            </a>
+          </div>
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ─────────────────────────────────────────────────── */}
-      <section id="how-it-works" className="bg-[#1B2B3A] py-20 sm:py-28">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+      {/* ── SECTION 5: CANDELA CONSULTING DETAIL ─────────────────────────── */}
+      <section
+        id="consulting"
+        style={{
+          background: "linear-gradient(135deg, #0e1e2a 0%, #1B2B3A 100%)",
+        }}
+        className="py-20 sm:py-28"
+      >
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
           {/* Eyebrow */}
-          <p className="font-mono text-[11px] text-[#3A6B8A] uppercase tracking-[0.22em] mb-5">
-            How it works
+          <p className="font-mono text-[11px] text-[#E9C03A] uppercase tracking-[0.22em] mb-5">
+            Candela Consulting
           </p>
 
           {/* Heading */}
-          <h2 className="font-fraunces font-medium text-3xl sm:text-4xl lg:text-5xl text-[#EDE8DE] leading-[1.15] tracking-tight mb-14">
-            Three steps.{" "}
-            <span className="font-fraunces italic text-[#E9C03A]">Minutes, not hours.</span>
+          <h2 className="font-fraunces font-normal text-3xl sm:text-4xl lg:text-5xl text-[#EDE8DE] leading-[1.15] tracking-tight mb-6 max-w-3xl">
+            Strategy and implementation for nonprofits ready to work smarter.
           </h2>
 
-          {/* Steps */}
-          <div className="flex flex-col gap-10">
+          {/* Body */}
+          <p className="font-jost font-light text-[#EDE8DE]/70 leading-[1.8] max-w-2xl mb-12">
+            Most nonprofits know AI could help — but don't know where to
+            start, what's safe, or how to get their team on board. Candela
+            Consulting bridges the gap between AI potential and nonprofit
+            reality.
+          </p>
+
+          {/* Service cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-12">
             {[
               {
-                num: "01",
-                title: "Choose your document type",
-                body: "Select from case notes, referral letters, safety plans, progress summaries, and more — each with its own professional format.",
+                label: "Assessment",
+                title: "AI Readiness Assessment",
+                body: "A structured evaluation of your workflows, staff capacity, and data practices — with a prioritized roadmap for AI adoption.",
               },
               {
-                num: "02",
-                title: "Speak or type your notes",
-                body: "Dictate a voice summary right after your meeting, or paste your raw notes. No templates, no rigid forms — just your words.",
+                label: "Implementation",
+                title: "Implementation Sprint",
+                body: "A focused 4–6 week engagement to deploy an AI tool or workflow — with training and documentation included.",
               },
               {
-                num: "03",
-                title: "Review and copy your draft",
-                body: "Candela Assist turns your notes into a polished, professional document in seconds. Edit as needed, then paste into your system.",
+                label: "Advisory",
+                title: "Retainer Engagement",
+                body: "Ongoing strategic and technical support for organizations building long-term AI capacity.",
               },
-            ].map(({ num, title, body }) => (
-              <div key={num} className="flex gap-6 sm:gap-8">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full border border-[#E9C03A]/40 flex items-center justify-center mt-0.5">
-                  <span className="font-mono text-[11px] text-[#E9C03A] tracking-wider">{num}</span>
-                </div>
-                <div>
-                  <h3 className="font-fraunces font-medium text-xl text-[#EDE8DE] mb-2">{title}</h3>
-                  <p className="font-jost font-light text-[#EDE8DE]/60 leading-[1.7]">{body}</p>
-                </div>
+            ].map(({ label, title, body }) => (
+              <div
+                key={label}
+                className="bg-[#EDE8DE] rounded-xl border-l-4 border-[#E9C03A] px-6 py-6"
+              >
+                <p className="font-mono text-[10px] text-[#3A6B8A] uppercase tracking-[0.2em] mb-2">
+                  {label}
+                </p>
+                <h3 className="font-fraunces font-medium text-lg text-[#1B2B3A] mb-3 leading-snug">
+                  {title}
+                </h3>
+                <p className="font-jost font-light text-sm text-[#1B2B3A]/60 leading-[1.7]">
+                  {body}
+                </p>
               </div>
             ))}
           </div>
 
           {/* CTA */}
-          <div className="mt-14">
-            <Link
-              href="/select"
-              className="inline-flex items-center justify-center gap-2 bg-[#E9C03A] text-[#1B2B3A] font-jost font-semibold text-sm uppercase tracking-[0.06em] px-7 py-3.5 rounded-lg hover:bg-[#C9A020] transition-colors duration-200"
-            >
-              Try It Free
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FEATURES ─────────────────────────────────────────────────────── */}
-      <section className="bg-[#EDE8DE] py-20 sm:py-28">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          {/* Eyebrow */}
-          <p className="font-mono text-[11px] text-[#3A6B8A] uppercase tracking-[0.22em] mb-5">
-            Built for the work
-          </p>
-
-          {/* Heading */}
-          <h2 className="font-fraunces font-medium text-3xl sm:text-4xl lg:text-5xl text-[#1B2B3A] leading-[1.15] tracking-tight mb-14">
-            Every feature designed{" "}
-            <span className="font-fraunces italic">for nonprofit case management.</span>
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {[
-              {
-                icon: (
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                ),
-                title: "Multiple document types",
-                body: "Case notes, referral letters, safety plans, progress summaries, intake assessments — formatted for each.",
-              },
-              {
-                icon: (
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z" />
-                  </svg>
-                ),
-                title: "Voice dictation",
-                body: "Speak your post-meeting summary out loud. Candela converts your words into professional documentation.",
-              },
-              {
-                icon: (
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                ),
-                title: "Seconds, not hours",
-                body: "Powered by Claude — one of the most capable AI models available — to produce accurate, professional drafts fast.",
-              },
-              {
-                icon: (
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                ),
-                title: "No account required",
-                body: "Open it, use it, close it. No sign-up, no login, no subscription. Just the tool when you need it.",
-              },
-            ].map(({ icon, title, body }) => (
-              <div key={title} className="bg-white rounded-xl p-6 shadow-sm">
-                <div className="w-9 h-9 rounded-lg bg-[#1B2B3A] flex items-center justify-center text-[#E9C03A] mb-4">
-                  {icon}
-                </div>
-                <h3 className="font-fraunces font-medium text-lg text-[#1B2B3A] mb-2">{title}</h3>
-                <p className="font-jost text-sm text-[#1B2B3A]/60 leading-[1.7]">{body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── PRIVACY ──────────────────────────────────────────────────────── */}
-      <section className="bg-[#1B2B3A] py-20 sm:py-28">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row gap-10 sm:gap-16 items-start">
-            {/* Lock icon */}
-            <div className="flex-shrink-0 w-14 h-14 rounded-full border border-[#3A6B8A] flex items-center justify-center">
-              <svg className="w-6 h-6 text-[#3A6B8A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-
-            <div>
-              <p className="font-mono text-[11px] text-[#3A6B8A] uppercase tracking-[0.22em] mb-4">
-                Privacy first
-              </p>
-              <h2 className="font-fraunces font-medium text-2xl sm:text-3xl text-[#EDE8DE] leading-[1.2] mb-5">
-                Your clients&apos; information never leaves this session.
-              </h2>
-              <p className="font-jost font-light text-[#EDE8DE]/60 leading-[1.8] mb-6">
-                Candela Assist does not store, log, or retain any client information you enter. Each session is stateless — when you close the tab, everything is gone. No database. No account. No audit trail tied to your clients.
-              </p>
-              <p className="font-jost font-light text-[#EDE8DE]/60 leading-[1.8]">
-                We built this tool for the nonprofit sector, where confidentiality isn&apos;t optional. Use it with the same confidence you bring to every client interaction.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FINAL CTA ────────────────────────────────────────────────────── */}
-      <section
-        style={{
-          background: "linear-gradient(135deg, #0e1e2a 0%, #1B2B3A 60%, #243446 100%)",
-        }}
-        className="py-24 sm:py-32"
-      >
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <p className="font-mono text-[11px] text-[#3A6B8A] uppercase tracking-[0.22em] mb-6">
-            Get started now
-          </p>
-          <h2 className="font-fraunces font-medium text-3xl sm:text-4xl lg:text-5xl text-[#EDE8DE] leading-[1.15] tracking-tight mb-6">
-            Give your team{" "}
-            <span className="font-fraunces italic text-[#E9C03A]">their time back.</span>
-          </h2>
-          <p className="font-jost font-light text-lg text-[#EDE8DE]/60 leading-[1.7] max-w-xl mx-auto mb-10">
-            No account. No training. No IT ticket. Just open it and start writing better documentation today.
-          </p>
-          <Link
-            href="/select"
-            className="inline-flex items-center justify-center gap-2 bg-[#E9C03A] text-[#1B2B3A] font-jost font-semibold text-sm uppercase tracking-[0.06em] px-8 py-4 rounded-lg hover:bg-[#C9A020] transition-colors duration-200"
+          <a
+            href="mailto:hello@candela.education"
+            className="inline-flex items-center justify-center gap-2 bg-[#E9C03A] text-[#1B2B3A] font-jost font-semibold text-xs uppercase tracking-[0.08em] px-7 py-3.5 rounded-lg hover:bg-[#C9A020] transition-colors duration-200"
           >
-            Try Candela Assist Free
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-          <p className="font-mono text-[10px] text-[#EDE8DE]/25 tracking-[0.18em] uppercase mt-6">
-            No account required · No client data stored · Built for nonprofits
-          </p>
+            Start a Conversation
+          </a>
         </div>
       </section>
+
+      {/* ── SECTION 6: FOOTER ────────────────────────────────────────────── */}
+      <footer className="bg-[#1B2B3A] py-14">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+
+          {/* Top row: logo/name + nav links */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-8">
+            {/* Logo + name */}
+            <div className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/candela-logo-primary.svg"
+                alt="Candela"
+                width={32}
+                height={32}
+              />
+              <span className="font-fraunces font-medium text-lg text-[#EDE8DE]">
+                Candela
+              </span>
+            </div>
+
+            {/* Anchor nav */}
+            <nav className="flex gap-6" aria-label="Footer navigation">
+              {[
+                { label: "Assist", href: "#assist" },
+                { label: "Academy", href: "#academy" },
+                { label: "Consulting", href: "#consulting" },
+              ].map(({ label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  className="font-jost font-light text-sm text-[#EDE8DE]/50 hover:text-[#EDE8DE]/80 transition-colors duration-200"
+                >
+                  {label}
+                </a>
+              ))}
+            </nav>
+          </div>
+
+          {/* Middle: contact */}
+          <p className="font-mono text-[10px] text-[#EDE8DE]/40 uppercase tracking-[0.18em] mb-4">
+            candela.education · hello@candela.education
+          </p>
+
+          {/* Bottom: legal */}
+          <p className="font-mono text-[9px] text-[#EDE8DE]/25 uppercase tracking-[0.14em]">
+            © 2026 Candela · Built for nonprofit case managers · La luz que guía
+          </p>
+
+        </div>
+      </footer>
+
     </div>
   );
 }

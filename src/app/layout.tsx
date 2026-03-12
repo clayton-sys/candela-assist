@@ -63,7 +63,7 @@ export default function RootLayout({
               />
               <div className="flex flex-col gap-0.5">
                 <span className="font-fraunces font-medium text-2xl text-stone leading-tight tracking-tight">
-                  Candela Assist
+                  Candela
                 </span>
                 <span className="font-mono text-[10px] text-gold opacity-60 leading-tight tracking-[0.22em]">
                   La luz que guía
@@ -84,31 +84,11 @@ export default function RootLayout({
         {/* ── Main — pages manage their own layout and bg ── */}
         <main className="flex-1">{children}</main>
 
-        {/* ── Footer ── */}
-        <footer className="bg-midnight flex-shrink-0">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 flex flex-col items-start gap-2">
-            <div className="flex items-center gap-2">
-              <Image
-                src="/candela-logo-primary.svg"
-                alt="Candela"
-                width={24}
-                height={24}
-                className="h-6 w-6 flex-shrink-0"
-              />
-              <span className="font-fraunces font-medium text-stone/50 text-sm">
-                Candela Assist · candela.education
-              </span>
-            </div>
-            <span className="font-mono text-[10px] text-gold opacity-40 tracking-[0.22em]">
-              La luz que guía
-            </span>
-            <p className="font-jost font-light text-stone/40 text-xs mt-2 leading-relaxed max-w-lg">
-              Candela Assist is a tool to support, not replace, professional
-              judgment. Always review and edit AI-generated drafts before use.
-            </p>
-            <p className="font-jost text-stone/30 text-xs">
-              © {new Date().getFullYear()} Candela Education. Privacy-first by
-              design.
+        {/* ── Footer — slim disclaimer bar shown on all pages ── */}
+        <footer className="bg-midnight flex-shrink-0 border-t border-stone/5">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
+            <p className="font-jost font-light text-stone/30 text-xs leading-relaxed">
+              Candela Assist is a tool to support, not replace, professional judgment. Always review and edit AI-generated drafts before use.
             </p>
           </div>
         </footer>
