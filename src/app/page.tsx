@@ -368,8 +368,8 @@ export default function HomePage() {
 
           {/* Body */}
           <p className="font-jost font-light text-[#EDE8DE]/70 leading-[1.8] max-w-2xl mb-12">
-            Most nonprofits know AI could help — but don't know where to
-            start, what's safe, or how to get their team on board. Candela
+            Most nonprofits know AI could help — but don&apos;t know where to
+            start, what&apos;s safe, or how to get their team on board. Candela
             Consulting bridges the gap between AI potential and nonprofit
             reality.
           </p>
