@@ -387,7 +387,7 @@ export default function NewIntakePage() {
       const elapsed = Date.now() - genStartRef.current;
       const remaining = Math.max(0, minWait - elapsed);
       setTimeout(() => {
-        window.location.href = `/app/grant-suite/${data.id}`;
+        window.location.href = `/app/grant-suite/${data.modelId}`;
       }, remaining);
     } catch (err) {
       setGenerateError(err instanceof Error ? err.message : "Generation failed");
