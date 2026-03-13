@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { LogicModelData } from "@/components/grant-suite/LogicModelGrid";
-import LogicModelHub from "@/components/grant-suite/LogicModelHub";
+import ProjectHub from "@/components/grant-suite/ProjectHub";
 import ExportOptionsModal from "@/components/grant-suite/ExportOptionsModal";
 import ShareDropdownWrapper from "./ShareDropdownWrapper";
 import Breadcrumbs from "@/components/grant-suite/Breadcrumbs";
@@ -35,6 +35,7 @@ export default async function LogicModelHubPage({ params }: PageProps) {
     activities: string;
     inputs: string;
     outcomes: string;
+    selectedViews?: string[];
   };
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://candela.education";
@@ -133,7 +134,7 @@ export default async function LogicModelHubPage({ params }: PageProps) {
 
       {/* ── Exportable section ─────────────────────────────────────────────── */}
       <div id="export-target" className="flex-1 bg-stone pb-6">
-        <LogicModelHub
+        <ProjectHub
           data={data}
           logicModelId={model.id}
           initialEvaluationPlans={evaluationPlans as Record<string, never>}
@@ -144,6 +145,8 @@ export default async function LogicModelHubPage({ params }: PageProps) {
             population: data.population ?? "",
             theoryOfChange: data.theoryOfChange ?? "",
           }}
+          selectedViews={data.selectedViews ?? []}
+          shareUrl={shareUrl}
         />
       </div>
 

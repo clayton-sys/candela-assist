@@ -173,18 +173,10 @@ Rules:
     // ── Create slug and save to Supabase ─────────────────────────────────
     const slug = `${slugify(programName)}-${randomId(4)}`;
 
-    // Build view statuses
-    const STUB_VIEWS = [
-      "command_center",
-      "staff_dashboard",
-      "board_deck",
-      "funder_public",
-      "website_embed",
-      "impact_one_pager",
-    ];
+    // Build view statuses — all views are now implemented
     const viewStatuses: Record<string, string> = {};
     for (const viewId of selectedViews) {
-      viewStatuses[viewId] = STUB_VIEWS.includes(viewId) ? "coming_soon" : "ready";
+      viewStatuses[viewId] = "ready";
     }
 
     const { data: model, error: insertError } = await supabase
