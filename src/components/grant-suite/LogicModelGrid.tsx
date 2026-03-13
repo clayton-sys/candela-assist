@@ -174,7 +174,7 @@ export default function LogicModelGrid({
     <div id="logic-model-grid" className="w-full px-6 py-6">
       <div className="flex flex-col sm:flex-row gap-0 items-stretch">
         {COLUMNS.map((col, colIndex) => {
-          const items = data[col.key] as unknown[];
+          const items = (data[col.key] as unknown[] | undefined) ?? [];
 
           return (
             <div
