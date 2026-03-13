@@ -3,20 +3,20 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { Menu, X } from "lucide-react";
+import CandelaLogo from "@/components/ui/CandelaLogo";
+import Button from "@/components/ui/Button";
 
 interface PublicNavProps {
   variant?: "default" | "logic-model";
 }
 
 const NAV_LINKS = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Pricing", href: "/pricing" },
   { label: "Grant Suite", href: "/app/grant-suite" },
   { label: "Candela Assist", href: "/app/assist" },
+  { label: "Academy", href: "/academy" },
+  { label: "Pricing", href: "/pricing" },
 ];
 
 export default function PublicNav({ variant = "default" }: PublicNavProps) {
@@ -48,72 +48,102 @@ export default function PublicNav({ variant = "default" }: PublicNavProps) {
     setMenuOpen(false);
   }
 
-  const ctaLabel =
-    variant === "logic-model"
-      ? "Build one for your org \u2192"
-      : "Request access";
-
   return (
-    <nav className="sticky top-0 z-50 bg-midnight border-b-[3px] border-gold print-hidden">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+    <nav
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+        background: "rgba(15,28,39,0.98)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        height: 60,
+        borderBottom: "0.5px solid rgba(233,192,58,0.08)",
+      }}
+      className="print-hidden"
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          height: 60,
+          padding: "0 48px",
+        }}
+      >
         {/* Left — Logo + wordmark */}
         <Link
           href="/"
-          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity duration-150"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            textDecoration: "none",
+            transition: "opacity 150ms",
+          }}
         >
-          <Image
-            src="/candela-logo-primary.svg"
-            alt="Candela"
-            width={24}
-            height={24}
-            className="flex-shrink-0"
-          />
-          <span className="font-fraunces text-stone text-lg leading-none">
+          <CandelaLogo size={32} />
+          <span
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: 20,
+              color: "var(--stone)",
+              lineHeight: 1,
+            }}
+          >
             Candela
+            <span style={{ color: "#E9C03A" }}>.</span>
           </span>
         </Link>
 
         {/* Center — Desktop nav links */}
-        <div className="hidden md:flex items-center gap-6">
+        <div
+          className="hidden md:flex"
+          style={{
+            alignItems: "center",
+            gap: 32,
+          }}
+        >
           {NAV_LINKS.map(({ label, href }) => (
             <Link
               key={href}
               href={href}
-              className={`font-jost text-[13px] font-medium transition-opacity duration-150 ${
-                isActive(href)
-                  ? "text-gold"
-                  : "text-stone/70 hover:text-stone"
-              }`}
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: 12,
+                letterSpacing: "0.04em",
+                color: isActive(href)
+                  ? "#E9C03A"
+                  : "rgba(237,232,222,0.45)",
+                textDecoration: "none",
+                transition: "color 150ms",
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive(href)) {
+                  e.currentTarget.style.color = "rgba(237,232,222,1)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive(href)) {
+                  e.currentTarget.style.color = "rgba(237,232,222,0.45)";
+                }
+              }}
             >
               {label}
             </Link>
           ))}
         </div>
 
-        {/* Right — Auth-aware CTAs (desktop) */}
-        <div className="hidden md:flex items-center gap-4">
+        {/* Right — CTA (desktop) */}
+        <div className="hidden md:flex" style={{ alignItems: "center", gap: 16 }}>
           {isLoggedIn ? (
-            <Link
-              href="/app"
-              className="font-jost text-[13px] font-medium text-cerulean hover:text-stone transition-colors duration-150"
-            >
+            <Button variant="cta" size="sm" href="/app">
               Go to app &rarr;
-            </Link>
+            </Button>
           ) : (
-            <>
-              <Link
-                href="/login"
-                className="font-jost text-[13px] font-medium text-stone/70 hover:text-stone transition-opacity duration-150"
-              >
-                Sign in
-              </Link>
-              <a
-                href="mailto:hello@candela.education"
-                className="font-jost text-[13px] font-medium bg-gold text-midnight px-4 py-1.5 rounded-md hover:bg-gold-dark transition-colors duration-150"
-              >
-                {ctaLabel}
-              </a>
-            </>
+            <Button variant="cta" size="sm" href="mailto:hello@candela.education">
+              Get started &rarr;
+            </Button>
           )}
         </div>
 
@@ -121,7 +151,21 @@ export default function PublicNav({ variant = "default" }: PublicNavProps) {
         <button
           type="button"
           onClick={() => setMenuOpen((s) => !s)}
-          className="md:hidden text-stone/70 hover:text-stone transition-colors p-1"
+          className="md:hidden"
+          style={{
+            color: "rgba(237,232,222,0.6)",
+            background: "none",
+            border: "none",
+            padding: 4,
+            cursor: "pointer",
+            transition: "color 150ms",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "rgba(237,232,222,1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "rgba(237,232,222,0.6)";
+          }}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
         >
           {menuOpen ? (
@@ -134,28 +178,64 @@ export default function PublicNav({ variant = "default" }: PublicNavProps) {
 
       {/* Mobile dropdown */}
       {menuOpen && (
-        <div className="md:hidden bg-midnight border-t border-stone/10 px-4 pb-5 pt-2 flex flex-col gap-1">
+        <div
+          className="md:hidden"
+          style={{
+            background: "rgba(15,28,39,0.98)",
+            borderTop: "0.5px solid rgba(237,232,222,0.06)",
+            padding: "8px 16px 20px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+          }}
+        >
           {NAV_LINKS.map(({ label, href }) => (
             <Link
               key={href}
               href={href}
               onClick={closeMenu}
-              className={`font-jost text-sm font-medium py-2.5 px-3 rounded-lg transition-colors ${
-                isActive(href)
-                  ? "text-gold bg-gold/10"
-                  : "text-stone/60 hover:text-stone hover:bg-white/5"
-              }`}
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: 14,
+                fontWeight: 500,
+                padding: "10px 12px",
+                borderRadius: 8,
+                textDecoration: "none",
+                transition: "all 150ms",
+                color: isActive(href)
+                  ? "#E9C03A"
+                  : "rgba(237,232,222,0.6)",
+                background: isActive(href)
+                  ? "rgba(233,192,58,0.1)"
+                  : "transparent",
+              }}
             >
               {label}
             </Link>
           ))}
 
-          <div className="border-t border-stone/10 mt-2 pt-3 flex flex-col gap-2">
+          <div
+            style={{
+              borderTop: "0.5px solid rgba(237,232,222,0.06)",
+              marginTop: 8,
+              paddingTop: 12,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
             {isLoggedIn ? (
               <Link
                 href="/app"
                 onClick={closeMenu}
-                className="font-jost text-sm font-medium text-cerulean py-2.5 px-3"
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: "#5a8fad",
+                  padding: "10px 12px",
+                  textDecoration: "none",
+                }}
               >
                 Go to app &rarr;
               </Link>
@@ -164,17 +244,27 @@ export default function PublicNav({ variant = "default" }: PublicNavProps) {
                 <Link
                   href="/login"
                   onClick={closeMenu}
-                  className="font-jost text-sm font-medium text-stone/60 hover:text-stone py-2.5 px-3"
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: "rgba(237,232,222,0.6)",
+                    padding: "10px 12px",
+                    textDecoration: "none",
+                    transition: "color 150ms",
+                  }}
                 >
                   Sign in
                 </Link>
-                <a
-                  href="mailto:hello@candela.education"
-                  onClick={closeMenu}
-                  className="font-jost text-sm font-medium bg-gold text-midnight px-4 py-2.5 rounded-md text-center hover:bg-gold-dark transition-colors"
-                >
-                  {ctaLabel}
-                </a>
+                <div style={{ padding: "0 12px" }}>
+                  <Button
+                    variant="cta"
+                    size="sm"
+                    href="mailto:hello@candela.education"
+                  >
+                    Get started &rarr;
+                  </Button>
+                </div>
               </>
             )}
           </div>
