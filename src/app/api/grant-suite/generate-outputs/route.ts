@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { checkRateLimit } from "@/lib/ratelimit";
+import Anthropic from "@anthropic-ai/sdk";
 import type { DataPoint } from "@/lib/grant-suite/types";
 import type { BrandTokens } from "@/lib/brand-kit/types";
 
 export const dynamic = "force-dynamic";
+
+const claude = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 function slugify(str: string): string {
   return str
@@ -79,16 +84,108 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ── Derive program name ────────────────────────────────────────────────
-    const programNamePoint = selectedDataPoints.find(
-      (p) =>
-        p.label.toLowerCase().includes("program") ||
-        p.label.toLowerCase().includes("name")
-    );
-    const programName = programNamePoint?.value ?? "Your Program";
+    // ── Derive program info from data points ────────────────────────────
+    const findPoint = (keywords: string[]) =>
+      selectedDataPoints.find((p) =>
+        keywords.some((kw) => p.label.toLowerCase().includes(kw))
+      )?.value ?? "";
 
-    // ── Create slug and logic_models row ──────────────────────────────────
+    const programName = findPoint(["program", "name"]) || "Your Program";
+    const orgName = findPoint(["organization", "org", "agency"]);
+    const population = findPoint(["population", "target", "served", "demographic"]);
+    const vertical = findPoint(["vertical", "sector", "service area", "focus"]);
+    const activities = findPoint(["activities", "services", "programming"]);
+    const inputs = findPoint(["inputs", "resources", "funding", "staff"]);
+    const outcomes = findPoint(["outcomes", "goals", "impact", "results"]);
+
+    // Build a summary of all data points for Claude
+    const dataPointsSummary = selectedDataPoints
+      .map((dp) => `${dp.label}: ${dp.value}`)
+      .join("\n");
+
+    // ── Call Claude to generate logic model ──────────────────────────────
+    const systemPrompt = `You are an expert nonprofit program evaluator and logic model specialist with deep experience in grant writing, program design, and outcome measurement across the nonprofit sector. You specialize in ${vertical || "general nonprofit services"}. Return ONLY valid JSON. No markdown, no backticks, no explanation.`;
+
+    const userPrompt = `Using the following program data, generate a complete logic model:
+
+${dataPointsSummary}
+
+Program Name: ${programName}
+Organization: ${orgName || "Not specified"}
+Target Population: ${population || "Not specified"}
+Service Vertical: ${vertical || "General nonprofit services"}
+Core Activities: ${activities || "Not specified"}
+Key Resources/Inputs: ${inputs || "Not specified"}
+Desired Outcomes: ${outcomes || "Not specified"}
+
+Generate a complete logic model in exactly this JSON structure:
+{
+  "inputs": [{ "title": "", "detail": "" }],
+  "activities": [{ "title": "", "detail": "" }],
+  "outputs": [{ "title": "", "metric": "", "target": "" }],
+  "shortTermOutcomes": [{ "title": "", "indicator": "", "timeframe": "" }],
+  "longTermOutcomes": [{ "title": "", "indicator": "", "timeframe": "" }],
+  "theoryOfChange": ""
+}
+
+Rules:
+- inputs: 4 items. Title (2-4 words) + detail (1 specific sentence)
+- activities: 4 items. Same format. What the program actually does.
+- outputs: 4 items. Title + metric (what is counted) + target (specific number + unit e.g. "150 adults per year")
+- shortTermOutcomes: 3 items. Knowledge/skill/attitude changes at 0-12 months. Specific measurable indicator + timeframe.
+- longTermOutcomes: 3 items. Behavior/life condition changes at 1-5 years. Indicator + timeframe (e.g. "2-year follow-up").
+- theoryOfChange: 2-3 sentences. Funder-ready narrative: population → activities → ultimate vision.
+- Use sector-specific language. Be specific with numbers and metrics.`;
+
+    const message = await claude.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 2048,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+    });
+
+    const content = message.content[0];
+    if (content.type !== "text") {
+      return NextResponse.json(
+        { error: "Unexpected response from Claude" },
+        { status: 500 }
+      );
+    }
+
+    // Parse JSON — strip markdown code fences if present
+    let rawText = content.text.trim();
+    const fenceMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fenceMatch) {
+      rawText = fenceMatch[1].trim();
+    }
+
+    let logicModelData: Record<string, unknown>;
+    try {
+      logicModelData = JSON.parse(rawText);
+    } catch {
+      console.error("Claude returned non-JSON:", content.text.slice(0, 200));
+      return NextResponse.json(
+        { error: "Failed to parse logic model response. Please try again." },
+        { status: 500 }
+      );
+    }
+
+    // ── Create slug and save to Supabase ─────────────────────────────────
     const slug = `${slugify(programName)}-${randomId(4)}`;
+
+    // Build view statuses
+    const STUB_VIEWS = [
+      "command_center",
+      "staff_dashboard",
+      "board_deck",
+      "funder_public",
+      "website_embed",
+      "impact_one_pager",
+    ];
+    const viewStatuses: Record<string, string> = {};
+    for (const viewId of selectedViews) {
+      viewStatuses[viewId] = STUB_VIEWS.includes(viewId) ? "coming_soon" : "ready";
+    }
 
     const { data: model, error: insertError } = await supabase
       .from("logic_models")
@@ -96,11 +193,21 @@ export async function POST(req: NextRequest) {
         org_id: orgId,
         slug,
         program_name: programName,
+        org_name: orgName || null,
+        vertical: vertical || null,
         data: {
+          programName,
+          orgName: orgName || "",
+          population: population || "",
+          vertical: vertical || "",
+          activities: activities || "",
+          inputs: inputs || "",
+          outcomes: outcomes || "",
           selectedDataPoints,
           selectedViews,
           brandTokens,
-          status: "generating",
+          viewStatuses,
+          ...logicModelData,
         },
       })
       .select()
@@ -113,42 +220,6 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
-
-    // ── Generate or stub each selected view ───────────────────────────────
-    const STUB_VIEWS = [
-      "command_center",
-      "staff_dashboard",
-      "board_deck",
-      "funder_public",
-      "website_embed",
-      "impact_one_pager",
-    ];
-
-    const viewStatuses: Record<string, string> = {};
-
-    for (const viewId of selectedViews) {
-      if (STUB_VIEWS.includes(viewId)) {
-        viewStatuses[viewId] = "coming_soon";
-      } else {
-        // logic_model, grant_report, eval_plan — mark as ready
-        // (actual generation happens via existing routes when user navigates to the detail page)
-        viewStatuses[viewId] = "ready";
-      }
-    }
-
-    // Update the model data with view statuses
-    await supabase
-      .from("logic_models")
-      .update({
-        data: {
-          selectedDataPoints,
-          selectedViews,
-          brandTokens,
-          status: "complete",
-          viewStatuses,
-        },
-      })
-      .eq("id", model.id);
 
     return NextResponse.json({ slug, modelId: model.id });
   } catch (err) {
