@@ -154,7 +154,7 @@ export default function PricingPage() {
                     fontFamily: "var(--font-display)",
                     fontWeight: 500,
                     fontSize: 42,
-                    color: "var(--stone)",
+                    color: "var(#1B2B3A)",
                   }}
                 >
                   $79
