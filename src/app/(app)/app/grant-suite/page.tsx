@@ -97,7 +97,7 @@ export default async function GrantSuiteDashboard() {
               Grant Suite
             </h1>
             <p className="font-jost text-xs text-stone/40">
-              Logic models for your programs
+              Program dashboards &amp; logic models
             </p>
           </div>
           <Link
@@ -105,7 +105,7 @@ export default async function GrantSuiteDashboard() {
             className="inline-flex items-center gap-2 bg-gold hover:bg-gold-dark text-midnight font-jost font-semibold text-sm px-4 py-2.5 rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
-            New logic model
+            New Project
           </Link>
         </div>
       </div>
@@ -122,10 +122,10 @@ export default async function GrantSuiteDashboard() {
               <FolderOpen className="w-7 h-7 text-midnight/30" />
             </div>
             <h2 className="font-fraunces text-xl text-midnight mb-2">
-              No logic models yet
+              No projects yet
             </h2>
             <p className="font-jost text-sm text-midnight/50 max-w-xs leading-relaxed mb-6">
-              Create your first logic model to get started. It takes about 60
+              Create your first project to get started. It takes about 60
               seconds.
             </p>
             <Link
@@ -133,7 +133,7 @@ export default async function GrantSuiteDashboard() {
               className="inline-flex items-center gap-2 bg-gold hover:bg-gold-dark text-midnight font-jost font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Create your first logic model
+              Create your first project
             </Link>
           </div>
         ) : (
