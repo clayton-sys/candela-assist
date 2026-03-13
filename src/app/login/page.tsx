@@ -1,13 +1,12 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2 } from "lucide-react";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") ?? "/app/grant-suite";
 
@@ -21,20 +20,26 @@ function LoginForm() {
     setLoading(true);
     setError("");
 
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const supabase = createClient();
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (authError) {
-      setError("Invalid email or password. Please try again.");
+      if (authError) {
+        setError("Invalid email or password. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Full page navigation ensures the server middleware sees the new
+      // auth cookies — client-side router.push can race with cookie propagation.
+      window.location.href = redirectTo;
+    } catch {
+      setError("Unable to connect to authentication service. Please try again later.");
       setLoading(false);
-      return;
     }
-
-    router.push(redirectTo);
-    router.refresh();
   }
 
   const orgName = process.env.NEXT_PUBLIC_ORG_NAME ?? "Candela";
