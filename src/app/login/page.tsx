@@ -1,13 +1,12 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2 } from "lucide-react";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") ?? "/app/grant-suite";
 
@@ -33,8 +32,9 @@ function LoginForm() {
       return;
     }
 
-    router.push(redirectTo);
-    router.refresh();
+    // Full page navigation ensures the server middleware sees the new
+    // auth cookies — client-side router.push can race with cookie propagation.
+    window.location.href = redirectTo;
   }
 
   const orgName = process.env.NEXT_PUBLIC_ORG_NAME ?? "Candela";
