@@ -1,3 +1,30 @@
+:root {
+  --ink:            #1B2B3A;
+  --ink-deep:       #0f1c27;
+  --gold:           #E9C03A;
+  --gold-pale:      #f5e08a;
+  --gold-dim:       #b8741a;
+  --stone:          #EDE8DE;
+  --stone-dim:      #d8d2c4;
+  --cerulean:       #3A6B8A;
+  --cerulean-light: #5a8fad;
+  --teal:           #1D9E75;
+  --coral:          #D85A30;
+  --font-display:   'Cormorant Garamond', Georgia, serif;
+  --font-body:      'DM Sans', system-ui, sans-serif;
+}
+
+body {
+  background: var(--ink-deep);
+  color: var(--stone);
+  font-family: var(--font-body);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
