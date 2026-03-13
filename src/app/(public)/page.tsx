@@ -102,7 +102,7 @@ export default function HomePage() {
 
               {/* CTA */}
               <Link
-                href="/select"
+                href="/app/assist"
                 className="inline-flex items-center justify-center gap-2 bg-[#1B2B3A] text-[#E9C03A] font-jost font-semibold text-xs uppercase tracking-[0.08em] px-5 py-3 rounded-lg hover:bg-[#0e1e2a] transition-colors duration-200"
               >
                 Try It Free
@@ -241,7 +241,7 @@ export default function HomePage() {
                     Available now
                   </p>
                   <Link
-                    href="/select"
+                    href="/app/assist"
                     className="font-mono text-[11px] text-[#3A6B8A] hover:text-[#EDE8DE] uppercase tracking-[0.18em] transition-colors duration-200"
                   >
                     Open the app →

@@ -6,10 +6,11 @@ import DocumentTypeCard from "@/components/DocumentTypeCard";
 import PrivacyNotice from "@/components/PrivacyNotice";
 import DocumentForm from "@/components/DocumentForm";
 import OutputDisplay from "@/components/OutputDisplay";
+import Link from "next/link";
 
 type AppState = "home" | "form" | "output";
 
-export default function Home() {
+export default function AssistPage() {
   const [appState, setAppState] = useState<AppState>("home");
   const [selectedTypeId, setSelectedTypeId] = useState<DocumentTypeId | null>(null);
   const [privacyAcknowledged, setPrivacyAcknowledged] = useState(false);
@@ -158,12 +159,12 @@ export default function Home() {
             </div>
           )}
           <div className="mt-6 border-t border-stone/60 pt-4">
-            <a
-              href="/input"
+            <Link
+              href="/app/assist/input"
               className="font-mono text-[11px] text-cerulean hover:text-cerulean-dark transition-colors uppercase tracking-[0.18em]"
             >
-              Prefer to dictate or paste? Use Quick Notes →
-            </a>
+              Prefer to dictate or paste? Use Quick Notes &rarr;
+            </Link>
           </div>
         </div>
       )}

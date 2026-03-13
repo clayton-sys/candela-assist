@@ -24,9 +24,9 @@ export default function AppSidebar({ userEmail }: AppSidebarProps) {
   const navItems = [
     {
       label: "Candela Assist",
-      href: "/select",
+      href: "/app/assist",
       icon: FileText,
-      active: pathname === "/select" || pathname === "/input",
+      active: pathname.startsWith("/app/assist"),
     },
     {
       label: "Grant Suite",

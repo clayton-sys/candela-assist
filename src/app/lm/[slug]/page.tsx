@@ -6,7 +6,9 @@ import LogicModelHub from "@/components/grant-suite/LogicModelHub";
 import ShareDropdown from "@/components/grant-suite/ShareDropdown";
 import PresentationMode from "@/components/grant-suite/PresentationMode";
 import LiveDataBadge from "@/components/grant-suite/LiveDataBadge";
-import Image from "next/image";
+import PublicNav from "@/components/PublicNav";
+import PublicFooter from "@/components/PublicFooter";
+import Link from "next/link";
 
 interface PageProps {
   params: { slug: string };
@@ -58,8 +60,6 @@ export default async function PublicLogicModelPage({ params }: PageProps) {
 
   const data = model.data as LogicModelData & Record<string, string>;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://candela.education";
-  const logoUrl = process.env.NEXT_PUBLIC_ORG_LOGO_URL || "/candela-logo-primary.svg";
-  const orgName = process.env.NEXT_PUBLIC_ORG_NAME ?? "Candela";
   const shareUrl = `${appUrl}/lm/${model.slug}`;
   const evaluationPlans = (model.evaluation_plans as Record<string, never>) ?? {};
 
@@ -74,7 +74,6 @@ export default async function PublicLogicModelPage({ params }: PageProps) {
   const latestReporting = reportingRows?.[0];
   const liveMetrics: Array<{ label: string; value: string }> = [];
   if (reportingRows && reportingRows.length > 0) {
-    // Gather unique metric labels/values from most recent entries
     const seen = new Set<string>();
     for (const row of reportingRows) {
       const rd = row.data as Record<string, unknown> | null;
@@ -101,21 +100,16 @@ export default async function PublicLogicModelPage({ params }: PageProps) {
         className="min-h-screen flex flex-col"
         style={{ fontFamily: "var(--font-jost), system-ui, sans-serif" }}
       >
-        {/* ── Public header ──────────────────────────────────────────────────── */}
+        {/* ── Site nav ── */}
+        <PublicNav variant="logic-model" />
+
+        {/* ── Program info sub-header ── */}
         <header className="flex-shrink-0 bg-midnight border-b border-gold/20 print-hidden">
-          <div className="px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <a href={appUrl} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                <Image
-                  src={logoUrl}
-                  alt={orgName}
-                  width={22}
-                  height={22}
-                />
-                <span className="font-mono text-[10px] text-gold/60 uppercase tracking-[0.18em]">
-                  Grant Suite
-                </span>
-              </a>
+          <div className="px-6 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="font-mono text-[10px] text-gold/60 uppercase tracking-[0.18em] flex-shrink-0">
+                Grant Suite
+              </span>
               <span className="text-stone/20 hidden sm:block">|</span>
               <div className="hidden sm:block min-w-0">
                 <p className="font-fraunces text-stone text-[18px] leading-none truncate max-w-xs">
@@ -162,7 +156,7 @@ export default async function PublicLogicModelPage({ params }: PageProps) {
           )}
         </div>
 
-        {/* ── Exportable content ─────────────────────────────────────────────── */}
+        {/* ── Exportable content ── */}
         <div id="export-target" className="flex-1 bg-stone pb-6">
           <LogicModelHub
             data={data}
@@ -179,26 +173,23 @@ export default async function PublicLogicModelPage({ params }: PageProps) {
           />
         </div>
 
-        {/* ── Footer ─────────────────────────────────────────────────────────── */}
-        <footer className="flex-shrink-0 bg-midnight border-t border-stone/5 print-hidden">
-          <div className="max-w-5xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="font-jost text-xs text-stone/40">
-              Powered by{" "}
-              <a
-                href={appUrl}
-                className="text-stone/60 hover:text-stone transition-colors"
-              >
-                {orgName}
-              </a>
+        {/* ── Conversion banner ── */}
+        <div className="bg-stone px-4 sm:px-8 pb-8 print-hidden">
+          <div className="max-w-3xl mx-auto bg-white border border-[#d4cfc6] rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <p className="font-fraunces text-base text-midnight">
+              Want a logic model like this for your organization?
             </p>
-            <a
-              href={appUrl}
-              className="font-jost text-xs text-cerulean hover:text-stone transition-colors"
+            <Link
+              href="/pricing"
+              className="font-jost text-sm font-medium text-cerulean hover:text-cerulean-dark transition-colors flex-shrink-0"
             >
-              Want a logic model like this for your organization? Learn more →
-            </a>
+              Learn more &rarr;
+            </Link>
           </div>
-        </footer>
+        </div>
+
+        {/* ── Footer ── */}
+        <PublicFooter />
       </div>
     </PresentationMode>
   );
