@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   const { data: orgUsers, error } = await adminClient
     .from("org_users")
     .select(
-      "user_id, disabled, created_at, orgs(id, name, org_display_name, plan_tier)"
+      "user_id, disabled, created_at, orgs(id, name, plan)"
     )
     .order("created_at", { ascending: false });
 
@@ -30,8 +30,7 @@ export async function GET(request: Request) {
       const org = ou.orgs as unknown as {
         id: string;
         name: string;
-        org_display_name: string | null;
-        plan_tier: string;
+        plan: string;
       } | null;
 
       // Get last active project
@@ -70,9 +69,9 @@ export async function GET(request: Request) {
         user_id: ou.user_id,
         email,
         name,
-        org_name: org?.org_display_name ?? org?.name ?? "—",
+        org_name: org?.name ?? "—",
         org_id: org?.id ?? "",
-        plan_tier: org?.plan_tier ?? "starter",
+        plan: org?.plan ?? "starter",
         created_at: ou.created_at,
         last_active: lastActive,
         disabled: ou.disabled,
