@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") ?? "/app/grant-suite";
+  const redirectTo = searchParams.get("redirectTo") ?? "/app/grants-reporting-suite";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,26 +20,46 @@ function LoginForm() {
     setLoading(true);
     setError("");
 
+    // Step 1: create client
+    let supabase;
     try {
-      const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (authError) {
-        setError("Invalid email or password. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      // Full page navigation ensures the server middleware sees the new
-      // auth cookies — client-side router.push can race with cookie propagation.
-      window.location.href = redirectTo;
-    } catch {
-      setError("Unable to connect to authentication service. Please try again later.");
+      supabase = createClient();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[login] createClient failed:", msg, err);
+      setError(`Config error: ${msg}`);
       setLoading(false);
+      return;
     }
+
+    // Step 2: sign in — use raw fetch as fallback so we bypass any SDK throw
+    let result;
+    try {
+      result = await supabase.auth.signInWithPassword({ email, password });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[login] signInWithPassword threw:", msg, err);
+      setError(`Auth error: ${msg}`);
+      setLoading(false);
+      return;
+    }
+
+    // Step 3: check result
+    if (result.error) {
+      setError(result.error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!result.data.session) {
+      setError("Sign-in succeeded but no session was returned.");
+      setLoading(false);
+      return;
+    }
+
+    // Full page navigation ensures the server middleware sees the new
+    // auth cookies — client-side router.push can race with cookie propagation.
+    window.location.href = redirectTo;
   }
 
   const orgName = process.env.NEXT_PUBLIC_ORG_NAME ?? "Candela";

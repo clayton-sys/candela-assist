@@ -8,9 +8,10 @@ import { FileText, BarChart3, LogOut } from "lucide-react";
 
 interface AppSidebarProps {
   userEmail?: string;
+  onNavClick?: () => void;
 }
 
-export default function AppSidebar({ userEmail }: AppSidebarProps) {
+export default function AppSidebar({ userEmail, onNavClick }: AppSidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -29,10 +30,10 @@ export default function AppSidebar({ userEmail }: AppSidebarProps) {
       active: pathname.startsWith("/app/assist"),
     },
     {
-      label: "Grant Suite",
-      href: "/app/grant-suite",
+      label: "Grants & Reporting Suite",
+      href: "/app/grants-reporting-suite",
       icon: BarChart3,
-      active: pathname.startsWith("/app/grant-suite"),
+      active: pathname.startsWith("/app/grants-reporting-suite"),
       isNew: true,
     },
   ];
@@ -72,6 +73,7 @@ export default function AppSidebar({ userEmail }: AppSidebarProps) {
           <Link
             key={href}
             href={href}
+            onClick={onNavClick}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-jost transition-colors group ${
               active
                 ? "bg-gold/15 text-gold"

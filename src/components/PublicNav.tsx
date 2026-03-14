@@ -13,7 +13,7 @@ interface PublicNavProps {
 }
 
 const NAV_LINKS = [
-  { label: "Grant Suite", href: "/app/grant-suite" },
+  { label: "Grants & Reporting Suite", href: "/app/grants-reporting-suite" },
   { label: "Candela Assist", href: "/app/assist" },
   { label: "Academy", href: "/academy" },
   { label: "Pricing", href: "/pricing" },

@@ -14,10 +14,10 @@ const PRODUCTS = [
     icon: FileText,
   },
   {
-    title: "Grant Suite",
+    title: "Grants & Reporting Suite",
     description:
       "Build logic models, evaluation plans, and reporting dashboards to strengthen your grant applications.",
-    href: "/app/grant-suite",
+    href: "/app/grants-reporting-suite",
     icon: BarChart3,
     isNew: true,
   },

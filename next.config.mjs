@@ -11,6 +11,20 @@ const nextConfig = {
       "@supabase/ssr",
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/grant-suite/:path*",
+        destination: "/grants-reporting-suite/:path*",
+        permanent: true,
+      },
+      {
+        source: "/app/grant-suite/:path*",
+        destination: "/app/grants-reporting-suite/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

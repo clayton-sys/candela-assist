@@ -1,17 +1,25 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
-import type { LogicModelData } from "@/components/grant-suite/LogicModelGrid";
-import LogicModelHub from "@/components/grant-suite/LogicModelHub";
-import ShareDropdown from "@/components/grant-suite/ShareDropdown";
-import PresentationMode from "@/components/grant-suite/PresentationMode";
-import LiveDataBadge from "@/components/grant-suite/LiveDataBadge";
 import PublicNav from "@/components/PublicNav";
 import PublicFooter from "@/components/PublicFooter";
 import Link from "next/link";
 
 interface PageProps {
   params: { slug: string };
+}
+
+interface LogicModelData {
+  inputs?: Array<{ title: string; detail: string }>;
+  activities?: Array<{ title: string; detail: string }>;
+  outputs?: Array<{ title: string; metric: string; target: string }>;
+  shortTermOutcomes?: Array<{ title: string; indicator: string; timeframe: string }>;
+  longTermOutcomes?: Array<{ title: string; indicator: string; timeframe: string }>;
+  theoryOfChange?: string;
+  programName?: string;
+  population?: string;
+  vertical?: string;
+  [key: string]: unknown;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -36,161 +44,103 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: model.program_name,
       description: firstSentence,
       type: "website",
-      siteName: `${orgName} Grant Suite`,
+      siteName: `${orgName} Grants & Reporting Suite`,
       url: `${appUrl}/lm/${model.slug}`,
     },
-    twitter: {
-      card: "summary",
-    },
+    twitter: { card: "summary" },
   };
 }
 
+const COLUMNS = [
+  { key: "inputs" as const, label: "Inputs", headerBg: "#185FA5", bodyBg: "#f0f7ff" },
+  { key: "activities" as const, label: "Activities", headerBg: "#0F6E56", bodyBg: "#eafaf3" },
+  { key: "outputs" as const, label: "Outputs", headerBg: "#854F0B", bodyBg: "#fff7eb" },
+  { key: "shortTermOutcomes" as const, label: "Short-Term Outcomes", headerBg: "#3C3489", bodyBg: "#f3f2fe" },
+  { key: "longTermOutcomes" as const, label: "Long-Term Outcomes", headerBg: "#993C1D", bodyBg: "#fff0eb" },
+];
+
 export default async function PublicLogicModelPage({ params }: PageProps) {
   const supabase = createClient();
-
   const { data: model, error } = await supabase
     .from("logic_models")
     .select("*")
     .eq("slug", params.slug)
     .single();
 
-  if (error || !model) {
-    notFound();
-  }
+  if (error || !model) notFound();
 
-  const data = model.data as LogicModelData & Record<string, string>;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://candela.education";
-  const shareUrl = `${appUrl}/lm/${model.slug}`;
-  const evaluationPlans = (model.evaluation_plans as Record<string, never>) ?? {};
-
-  // Fetch reporting data (public read via RLS policy)
-  const { data: reportingRows } = await supabase
-    .from("reporting_data")
-    .select("*")
-    .eq("logic_model_id", model.id)
-    .order("updated_at", { ascending: false });
-
-  // Compute live data badge metrics
-  const latestReporting = reportingRows?.[0];
-  const liveMetrics: Array<{ label: string; value: string }> = [];
-  if (reportingRows && reportingRows.length > 0) {
-    const seen = new Set<string>();
-    for (const row of reportingRows) {
-      const rd = row.data as Record<string, unknown> | null;
-      if (rd && typeof rd === "object") {
-        const metrics = rd.metrics as Array<{ label: string; value: string | number }> | undefined;
-        if (Array.isArray(metrics)) {
-          for (const m of metrics) {
-            if (!seen.has(m.label) && liveMetrics.length < 4) {
-              seen.add(m.label);
-              liveMetrics.push({ label: m.label, value: String(m.value) });
-            }
-          }
-        }
-      }
-    }
-  }
+  const data = model.data as LogicModelData;
 
   return (
-    <PresentationMode
-      programName={model.program_name}
-      orgName={model.org_name}
-    >
-      <div
-        className="min-h-screen flex flex-col"
-        style={{ fontFamily: "var(--font-jost), system-ui, sans-serif" }}
-      >
-        {/* ── Site nav ── */}
-        <PublicNav variant="logic-model" />
+    <div className="min-h-screen flex flex-col" style={{ fontFamily: "var(--font-jost), system-ui, sans-serif" }}>
+      <PublicNav variant="logic-model" />
 
-        {/* ── Program info sub-header ── */}
-        <header className="flex-shrink-0 bg-midnight border-b border-gold/20 print-hidden">
-          <div className="px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="font-mono text-[10px] text-gold/60 uppercase tracking-[0.18em] flex-shrink-0">
-                Grant Suite
-              </span>
-              <span className="text-stone/20 hidden sm:block">|</span>
-              <div className="hidden sm:block min-w-0">
-                <p className="font-fraunces text-stone text-[18px] leading-none truncate max-w-xs">
-                  {model.program_name}
-                </p>
-                {(model.org_name || model.vertical) && (
-                  <p className="font-jost text-xs text-stone/50 mt-0.5">
-                    {[model.org_name, model.vertical].filter(Boolean).join(" · ")}
-                  </p>
-                )}
-              </div>
-            </div>
+      {/* Program header */}
+      <header className="bg-midnight border-b border-gold/20">
+        <div className="px-6 py-3 flex items-center gap-3">
+          <span className="font-mono text-[10px] text-gold/60 uppercase tracking-[0.18em]">
+            Grants &amp; Reporting Suite
+          </span>
+          <span className="text-stone/20 hidden sm:block">|</span>
+          <div className="hidden sm:block">
+            <p className="font-fraunces text-stone text-[18px] leading-none">{model.program_name}</p>
+            {(model.org_name || model.vertical) && (
+              <p className="font-jost text-xs text-stone/50 mt-0.5">
+                {[model.org_name, model.vertical].filter(Boolean).join(" · ")}
+              </p>
+            )}
+          </div>
+        </div>
+      </header>
 
-            <div className="flex items-center gap-3">
-              {latestReporting && (
-                <div className="hidden sm:block">
-                  <LiveDataBadge
-                    lastUpdated={latestReporting.updated_at}
-                    metrics={liveMetrics}
-                  />
+      <div className="h-[3px] bg-gold" />
+
+      {/* Logic model grid */}
+      <div className="flex-1 bg-stone p-6">
+        {data.theoryOfChange && (
+          <div className="max-w-4xl mx-auto mb-6 bg-white border border-midnight/5 rounded-xl p-4">
+            <h2 className="font-fraunces text-sm font-semibold text-midnight mb-2">Theory of Change</h2>
+            <p className="text-sm text-midnight/60 font-jost leading-relaxed">{data.theoryOfChange}</p>
+          </div>
+        )}
+
+        <div className="max-w-6xl mx-auto grid grid-cols-5 gap-3">
+          {COLUMNS.map((col) => {
+            const items = (data[col.key] as Array<Record<string, string>>) ?? [];
+            return (
+              <div key={col.key} className="rounded-xl overflow-hidden border border-black/5">
+                <div className="px-3 py-2 text-white text-xs font-semibold" style={{ backgroundColor: col.headerBg }}>
+                  {col.label}
                 </div>
-              )}
-              <ShareDropdown
-                shareUrl={shareUrl}
-                slug={model.slug}
-                variant="public"
-              />
-            </div>
-          </div>
-        </header>
-
-        {/* 3px gold line */}
-        <div className="h-[3px] bg-gold flex-shrink-0" />
-
-        {/* Program title on mobile */}
-        <div className="sm:hidden px-6 py-4 bg-midnight border-b border-stone/10 print-hidden">
-          <p className="font-fraunces text-stone text-[18px] leading-none">
-            {model.program_name}
-          </p>
-          {(model.org_name || model.vertical) && (
-            <p className="font-jost text-xs text-stone/50 mt-0.5">
-              {[model.org_name, model.vertical].filter(Boolean).join(" · ")}
-            </p>
-          )}
+                <div className="p-2 space-y-1.5" style={{ backgroundColor: col.bodyBg }}>
+                  {items.map((item, i) => (
+                    <div key={i} className="bg-white rounded-lg p-2.5 border border-black/5">
+                      <p className="text-xs font-semibold text-midnight">{item.title}</p>
+                      <p className="text-[11px] text-midnight/50 mt-0.5">
+                        {item.detail || item.metric || item.indicator}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
-
-        {/* ── Exportable content ── */}
-        <div id="export-target" className="flex-1 bg-stone pb-6">
-          <LogicModelHub
-            data={data}
-            logicModelId={model.id}
-            initialEvaluationPlans={evaluationPlans}
-            initialReportingData={reportingRows ?? []}
-            programContext={{
-              programName: data.programName ?? model.program_name,
-              vertical: data.vertical ?? model.vertical ?? "",
-              population: data.population ?? "",
-              theoryOfChange: data.theoryOfChange ?? "",
-            }}
-            readOnly
-          />
-        </div>
-
-        {/* ── Conversion banner ── */}
-        <div className="bg-stone px-4 sm:px-8 pb-8 print-hidden">
-          <div className="max-w-3xl mx-auto bg-white border border-[#d4cfc6] rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <p className="font-fraunces text-base text-midnight">
-              Want a logic model like this for your organization?
-            </p>
-            <Link
-              href="/pricing"
-              className="font-jost text-sm font-medium text-cerulean hover:text-cerulean-dark transition-colors flex-shrink-0"
-            >
-              Learn more &rarr;
-            </Link>
-          </div>
-        </div>
-
-        {/* ── Footer ── */}
-        <PublicFooter />
       </div>
-    </PresentationMode>
+
+      {/* CTA */}
+      <div className="bg-stone px-4 sm:px-8 pb-8">
+        <div className="max-w-3xl mx-auto bg-white border border-[#d4cfc6] rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <p className="font-fraunces text-base text-midnight">
+            Want a logic model like this for your organization?
+          </p>
+          <Link href="/pricing" className="font-jost text-sm font-medium text-cerulean hover:text-cerulean-dark transition-colors">
+            Learn more &rarr;
+          </Link>
+        </div>
+      </div>
+
+      <PublicFooter />
+    </div>
   );
 }
