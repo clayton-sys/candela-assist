@@ -23,7 +23,7 @@ export async function GET(
     const { data: org, error: orgError } = await adminClient
       .from("orgs")
       .select(
-        "id, name, legal_name, website, org_type, mission_statement, plan, brand_primary, brand_logo_url"
+        "id, name, slug, legal_name, plan, mission_statement, website, org_type, created_at, license_status"
       )
       .eq("id", orgId)
       .single();
@@ -79,7 +79,14 @@ export async function GET(
 
     if (projError) throw projError;
 
-    return NextResponse.json({ org, users, projects: projects ?? [] });
+    // Fetch brand kit
+    const { data: brandKit } = await adminClient
+      .from("brand_kits")
+      .select("brand_primary, brand_accent, logo_url, org_display_name, custom_center_text")
+      .eq("org_id", orgId)
+      .single();
+
+    return NextResponse.json({ org, users, projects: projects ?? [], brandKit });
   } catch (err: unknown) {
     const message =
       err instanceof Error ? err.message : "Internal server error";
