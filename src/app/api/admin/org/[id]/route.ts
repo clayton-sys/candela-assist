@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { createClient as createServerClient } from "@/lib/supabase/server";
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  // Verify admin
-  const supabase = createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user || user.id !== process.env.ADMIN_USER_ID) {
+  // Verify admin header (layout-level gate blocks non-admins from reaching /admin pages)
+  if (request.headers.get("x-admin-key") !== process.env.ADMIN_KEY) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 

@@ -44,7 +44,9 @@ export default function AdminOrgDetailPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`/api/admin/org/${orgId}`);
+        const res = await fetch(`/api/admin/org/${orgId}`, {
+          headers: { "x-admin-key": process.env.NEXT_PUBLIC_ADMIN_KEY ?? "" },
+        });
         if (!res.ok) {
           setLoading(false);
           return;
