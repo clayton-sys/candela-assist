@@ -13,7 +13,7 @@ export async function GET(request: Request) {
 
   const { data: orgs, error } = await adminClient
     .from("orgs")
-    .select("id, name, org_display_name, legal_name, plan_tier, created_at")
+    .select("id, name, legal_name, plan, created_at")
     .order("created_at", { ascending: false });
 
   if (error) {
