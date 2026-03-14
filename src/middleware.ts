@@ -18,8 +18,8 @@ function isPublic(pathname: string): boolean {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Only protect /app/* routes
-  if (!pathname.startsWith("/app/")) {
+  // Only protect /app/* and /admin/* routes
+  if (!pathname.startsWith("/app/") && !pathname.startsWith("/admin")) {
     return NextResponse.next();
   }
 
@@ -67,12 +67,22 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Check org license status
+  // Admin routes: only check auth (layout handles ADMIN_USER_ID)
+  if (pathname.startsWith("/admin")) {
+    return supabaseResponse;
+  }
+
+  // Check org membership, disabled status, and license
   const { data: orgUser } = await supabase
     .from("org_users")
-    .select("org_id")
+    .select("org_id, disabled")
     .eq("user_id", user.id)
     .single();
+
+  // Block disabled users
+  if (orgUser?.disabled) {
+    return NextResponse.redirect(new URL("/login?error=disabled", request.url));
+  }
 
   if (orgUser?.org_id) {
     const { data: org } = await supabase
@@ -93,5 +103,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/app/:path*"],
+  matcher: ["/app/:path*", "/admin/:path*"],
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, Bell } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 interface TopBarProps {
   userEmail?: string;
@@ -8,6 +9,8 @@ interface TopBarProps {
 }
 
 export default function TopBar({ userEmail, orgName }: TopBarProps) {
+  const pathname = usePathname();
+  const isAdmin = pathname.startsWith("/admin");
   // Derive initials from email
   const initials = userEmail
     ? userEmail
@@ -34,6 +37,11 @@ export default function TopBar({ userEmail, orgName }: TopBarProps) {
         >
           {orgName ?? "Candela Assist"}
         </span>
+        {isAdmin && (
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-[#E9C03A] text-[#1B2B3A]">
+            ADMIN
+          </span>
+        )}
       </div>
 
       {/* Center: Search */}
