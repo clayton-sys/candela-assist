@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
 
 interface UserRow {
@@ -37,102 +36,43 @@ export default function AdminUsersPage() {
   const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
   const fetchUsers = useCallback(async () => {
     setLoading(true);
-
-    // Fetch org_users with org data
-    const { data: orgUsers } = await supabase
-      .from("org_users")
-      .select(
-        "user_id, disabled, created_at, orgs(id, name, org_display_name, plan_tier)"
-      )
-      .order("created_at", { ascending: false });
-
-    if (!orgUsers) {
-      setLoading(false);
-      return;
-    }
-
-    // Build user rows
-    const rows: UserRow[] = [];
-    for (const ou of orgUsers) {
-      const org = ou.orgs as unknown as {
-        id: string;
-        name: string;
-        org_display_name: string | null;
-        plan_tier: string;
-      } | null;
-
-      // Get last active project for this user's org
-      let lastActive: string | null = null;
-      if (org) {
-        const { data: proj } = await supabase
-          .from("projects")
-          .select("updated_at")
-          .eq("org_id", org.id)
-          .eq("created_by", ou.user_id)
-          .order("updated_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        lastActive = proj?.updated_at ?? null;
-      }
-
-      rows.push({
-        user_id: ou.user_id,
-        email: "", // Will be filled by API
-        name: null,
-        org_name: org?.org_display_name ?? org?.name ?? "—",
-        org_id: org?.id ?? "",
-        plan_tier: org?.plan_tier ?? "starter",
-        created_at: ou.created_at,
-        last_active: lastActive,
-        disabled: ou.disabled,
-      });
-    }
-
-    // Fetch emails from admin API
     try {
       const res = await fetch("/api/admin/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userIds: rows.map((r) => r.user_id) }),
+        headers: { "x-admin-key": process.env.NEXT_PUBLIC_ADMIN_KEY! },
       });
-      if (res.ok) {
-        const { emails } = await res.json();
-        for (const row of rows) {
-          if (emails[row.user_id]) {
-            row.email = emails[row.user_id].email ?? "";
-            row.name = emails[row.user_id].name ?? null;
-          }
-        }
+      if (!res.ok) {
+        setLoading(false);
+        return;
       }
+      const { users: data } = await res.json();
+      setUsers(data ?? []);
     } catch {
-      // Emails will remain empty
+      // fetch failed
     }
-
-    setUsers(rows);
     setLoading(false);
-  }, [supabase]);
+  }, []);
 
   const fetchOrgs = useCallback(async () => {
-    const { data } = await supabase
-      .from("orgs")
-      .select("id, name, org_display_name")
-      .order("org_display_name");
-    if (data) {
-      setOrgs(
-        data.map((o) => ({
-          id: o.id,
-          label: o.org_display_name ?? o.name ?? "Unnamed",
-        }))
-      );
+    try {
+      const res = await fetch("/api/admin/orgs", {
+        headers: { "x-admin-key": process.env.NEXT_PUBLIC_ADMIN_KEY! },
+      });
+      if (!res.ok) return;
+      const { orgs: data } = await res.json();
+      if (data) {
+        setOrgs(
+          data.map((o: { id: string; org_display_name: string | null; name: string | null }) => ({
+            id: o.id,
+            label: o.org_display_name ?? o.name ?? "Unnamed",
+          }))
+        );
+      }
+    } catch {
+      // fetch failed
     }
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     fetchUsers();

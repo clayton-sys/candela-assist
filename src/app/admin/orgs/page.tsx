@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -27,47 +26,23 @@ export default function AdminOrgsPage() {
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
   const fetchOrgs = useCallback(async () => {
     setLoading(true);
-    const { data: orgs } = await supabase
-      .from("orgs")
-      .select("id, name, org_display_name, legal_name, plan_tier, created_at")
-      .order("created_at", { ascending: false });
-
-    if (!orgs) {
-      setLoading(false);
-      return;
+    try {
+      const res = await fetch("/api/admin/orgs", {
+        headers: { "x-admin-key": process.env.NEXT_PUBLIC_ADMIN_KEY! },
+      });
+      if (!res.ok) {
+        setLoading(false);
+        return;
+      }
+      const { orgs } = await res.json();
+      setOrgData(orgs ?? []);
+    } catch {
+      // fetch failed
     }
-
-    const rows: OrgRow[] = await Promise.all(
-      orgs.map(async (org) => {
-        const [{ count: userCount }, { count: projectCount }] =
-          await Promise.all([
-            supabase
-              .from("org_users")
-              .select("*", { count: "exact", head: true })
-              .eq("org_id", org.id),
-            supabase
-              .from("projects")
-              .select("*", { count: "exact", head: true })
-              .eq("org_id", org.id),
-          ]);
-        return {
-          ...org,
-          userCount: userCount ?? 0,
-          projectCount: projectCount ?? 0,
-        };
-      })
-    );
-
-    setOrgData(rows);
     setLoading(false);
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     fetchOrgs();
