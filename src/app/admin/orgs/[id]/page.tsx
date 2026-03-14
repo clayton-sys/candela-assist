@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createBrowserClient } from "@supabase/ssr";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 
@@ -42,77 +41,27 @@ export default function AdminOrgDetailPage() {
   const [message, setMessage] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
   useEffect(() => {
     async function load() {
-      // Fetch org
-      const { data: orgData } = await supabase
-        .from("orgs")
-        .select(
-          "id, name, org_display_name, legal_name, website, org_type, mission_statement, plan_tier, brand_primary, brand_logo_url"
-        )
-        .eq("id", orgId)
-        .single();
-
-      if (!orgData) {
-        setLoading(false);
-        return;
-      }
-
-      // Fetch org users
-      const { data: orgUsers } = await supabase
-        .from("org_users")
-        .select("user_id, role")
-        .eq("org_id", orgId);
-
-      // Fetch emails
-      const userIds = (orgUsers ?? []).map((u) => u.user_id);
-      let emailMap: Record<
-        string,
-        { email: string; name: string | null }
-      > = {};
-      if (userIds.length > 0) {
-        try {
-          const res = await fetch("/api/admin/users", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userIds }),
-          });
-          if (res.ok) {
-            const { emails } = await res.json();
-            emailMap = emails;
-          }
-        } catch {
-          // fallback
+      try {
+        const res = await fetch(`/api/admin/org/${orgId}`);
+        if (!res.ok) {
+          setLoading(false);
+          return;
         }
+        const { org: orgData, users, projects } = await res.json();
+        setOrg({
+          ...orgData,
+          users: users ?? [],
+          projects: projects ?? [],
+        });
+      } catch {
+        // fetch failed
       }
-
-      // Fetch projects
-      const { data: projects } = await supabase
-        .from("projects")
-        .select("id, name, status, project_type, updated_at")
-        .eq("org_id", orgId)
-        .order("updated_at", { ascending: false });
-
-      setOrg({
-        ...orgData,
-        users: (orgUsers ?? []).map((u) => ({
-          user_id: u.user_id,
-          email: emailMap[u.user_id]?.email ?? "",
-          name: emailMap[u.user_id]?.name ?? null,
-          role: u.role,
-          last_active: null,
-        })),
-        projects: projects ?? [],
-      });
       setLoading(false);
     }
     load();
-  }, [orgId, supabase]);
+  }, [orgId]);
 
   async function handlePlanChange(newTier: string) {
     if (!org) return;
