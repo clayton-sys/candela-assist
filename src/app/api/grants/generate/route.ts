@@ -132,9 +132,11 @@ export async function POST(req: NextRequest) {
 
     // Parse body
     const body = await req.json();
-    const { dataPoints, selectedViews } = body as {
+    const { dataPoints, selectedViews, theme, layout } = body as {
       dataPoints: DataPoint[];
       selectedViews: string[];
+      theme?: string;
+      layout?: string;
     };
 
     if (!dataPoints?.length || !selectedViews?.length) {
@@ -148,6 +150,11 @@ export async function POST(req: NextRequest) {
       .map((dp) => `- ${dp.label}: ${dp.value} (${dp.category})`)
       .join("\n");
 
+    // Resolve theme/layout for system prompt
+    const activeTheme = theme || "candela_classic";
+    const activeLayout = layout || "constellation";
+    const themeDirective = `Use the '${activeTheme}' theme with '${activeLayout}' layout. Adapt the visual style accordingly.`;
+
     // Generate each view in parallel
     const results = await Promise.all(
       selectedViews.map(async (viewType) => {
@@ -158,7 +165,7 @@ export async function POST(req: NextRequest) {
           model: "claude-sonnet-4-20250514",
           max_tokens: viewType === "command_center" ? 16384 : 8192,
           system:
-            "You are an expert HTML/CSS designer for nonprofit reporting tools. Return ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html> or <div>.",
+            `You are an expert HTML/CSS designer for nonprofit reporting tools. ${themeDirective} Return ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html> or <div>.`,
           messages: [
             {
               role: "user",

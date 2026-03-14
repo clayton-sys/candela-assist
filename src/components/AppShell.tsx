@@ -3,13 +3,31 @@
 import { useState, useCallback, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import AppSidebar from "./AppSidebar";
+import TopBar from "./TopBar";
+
+interface Project {
+  id: string;
+  name: string;
+  status: string;
+}
+
+interface Program {
+  id: string;
+  name: string;
+  projects: Project[];
+}
 
 interface AppShellProps {
   userEmail?: string;
+  programs?: Program[];
   children: React.ReactNode;
 }
 
-export default function AppShell({ userEmail, children }: AppShellProps) {
+export default function AppShell({
+  userEmail,
+  programs = [],
+  children,
+}: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pathname = usePathname();
 
@@ -24,7 +42,10 @@ export default function AppShell({ userEmail, children }: AppShellProps) {
     <div className="flex h-screen overflow-hidden">
       {/* Desktop sidebar — hidden below md */}
       <div className="hidden md:flex">
-        <AppSidebar userEmail={userEmail} />
+        <AppSidebar
+          userEmail={userEmail}
+          programs={programs}
+        />
       </div>
 
       {/* Mobile hamburger button — visible below md */}
@@ -32,7 +53,7 @@ export default function AppShell({ userEmail, children }: AppShellProps) {
         type="button"
         aria-label="Open navigation"
         onClick={() => setDrawerOpen(true)}
-        className="md:hidden fixed top-3 left-3 z-50 flex items-center justify-center w-11 h-11 rounded-lg bg-midnight/80 backdrop-blur-sm"
+        className="md:hidden fixed top-3 left-3 z-50 flex items-center justify-center w-11 h-11 rounded-lg bg-[#1B2B3A]/80 backdrop-blur-sm"
       >
         <svg
           width="22"
@@ -61,7 +82,7 @@ export default function AppShell({ userEmail, children }: AppShellProps) {
 
       {/* Mobile drawer */}
       <div
-        className={`md:hidden fixed inset-y-0 left-0 z-50 w-56 transform transition-transform duration-[260ms] ease-out ${
+        className={`md:hidden fixed inset-y-0 left-0 z-50 w-60 transform transition-transform duration-[260ms] ease-out ${
           drawerOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -70,7 +91,7 @@ export default function AppShell({ userEmail, children }: AppShellProps) {
           type="button"
           aria-label="Close navigation"
           onClick={closeDrawer}
-          className="absolute top-3 right-3 z-10 flex items-center justify-center w-8 h-8 rounded-md text-stone/50 hover:text-stone transition-colors"
+          className="absolute top-3 right-3 z-10 flex items-center justify-center w-8 h-8 rounded-md text-[#EDE8DE]/50 hover:text-[#EDE8DE] transition-colors"
         >
           <svg
             width="18"
@@ -87,10 +108,18 @@ export default function AppShell({ userEmail, children }: AppShellProps) {
           </svg>
         </button>
 
-        <AppSidebar userEmail={userEmail} onNavClick={closeDrawer} />
+        <AppSidebar
+          userEmail={userEmail}
+          programs={programs}
+          onNavClick={closeDrawer}
+        />
       </div>
 
-      <main className="flex-1 overflow-auto bg-stone">{children}</main>
+      {/* Main content area with TopBar */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <TopBar userEmail={userEmail} />
+        <main className="flex-1 overflow-auto bg-[#EDE8DE]">{children}</main>
+      </div>
     </div>
   );
 }

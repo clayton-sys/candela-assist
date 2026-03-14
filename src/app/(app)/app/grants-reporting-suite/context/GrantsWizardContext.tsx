@@ -37,6 +37,8 @@ export interface GrantsWizardState {
   selectedDataPoints: DataPoint[];
   editedDataPoints: DataPoint[];
   selectedViews: string[];
+  theme: string;
+  layout: string;
 }
 
 interface GrantsWizardContextValue extends GrantsWizardState {
@@ -50,6 +52,8 @@ interface GrantsWizardContextValue extends GrantsWizardState {
   setSelectedDataPoints: (points: DataPoint[]) => void;
   setEditedDataPoints: (points: DataPoint[]) => void;
   setSelectedViews: (views: string[]) => void;
+  setTheme: (theme: string) => void;
+  setLayout: (layout: string) => void;
   reset: () => void;
 }
 
@@ -64,6 +68,8 @@ const initialState: GrantsWizardState = {
   selectedDataPoints: [],
   editedDataPoints: [],
   selectedViews: [],
+  theme: "candela_classic",
+  layout: "constellation",
 };
 
 const GrantsWizardContext = createContext<GrantsWizardContextValue | null>(null);
@@ -111,6 +117,14 @@ export function GrantsWizardProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, selectedViews: views }));
   }, []);
 
+  const setTheme = useCallback((theme: string) => {
+    setState((s) => ({ ...s, theme }));
+  }, []);
+
+  const setLayout = useCallback((layout: string) => {
+    setState((s) => ({ ...s, layout }));
+  }, []);
+
   const reset = useCallback(() => {
     setState(initialState);
   }, []);
@@ -129,6 +143,8 @@ export function GrantsWizardProvider({ children }: { children: ReactNode }) {
         setSelectedDataPoints,
         setEditedDataPoints,
         setSelectedViews,
+        setTheme,
+        setLayout,
         reset,
       }}
     >
