@@ -131,8 +131,13 @@ export async function POST(request: Request) {
           .from("orgs")
           .insert({
             name: org_display_name,
+            slug,
             legal_name: legal_name || null,
             plan: tier,
+            license_status: "active",
+            assist_usage_limit: 150,
+            grant_usage_limit: 50,
+            overage_enabled: false,
           })
           .select("id")
           .single();
