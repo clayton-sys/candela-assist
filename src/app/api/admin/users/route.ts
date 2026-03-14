@@ -3,6 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
+  console.log("ADMIN_KEY env:", process.env.ADMIN_KEY);
+  console.log("x-admin-key header:", request.headers.get("x-admin-key"));
   if (request.headers.get("x-admin-key") !== process.env.ADMIN_KEY) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
