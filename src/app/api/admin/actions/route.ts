@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
+  console.log('Admin action route hit');
   // Verify admin
   const supabase = createServerClient();
   const {
@@ -129,10 +130,9 @@ export async function POST(request: Request) {
         const { data: newOrg, error } = await adminClient
           .from("orgs")
           .insert({
-            name: slug,
-            org_display_name,
+            name: org_display_name,
             legal_name: legal_name || null,
-            plan_tier: tier,
+            plan: tier,
           })
           .select("id")
           .single();
@@ -149,7 +149,7 @@ export async function POST(request: Request) {
   } catch (err: unknown) {
     const message =
       err instanceof Error ? err.message : "Internal server error";
-    console.error(`Admin action "${action}" failed:`, message);
+    console.error(`Admin action "${action}" failed:`, err);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
