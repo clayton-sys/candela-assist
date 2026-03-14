@@ -6,7 +6,6 @@ import { Check } from "lucide-react";
 const STEPS = [
   { label: "Workspace", path: "/app/grants-reporting-suite" },
   { label: "Input", path: "/app/grants-reporting-suite/input" },
-  { label: "Brand", path: "/app/grants-reporting-suite/brand" },
   { label: "Analysis", path: "/app/grants-reporting-suite/analysis" },
   { label: "Edit", path: "/app/grants-reporting-suite/edit" },
   { label: "Views", path: "/app/grants-reporting-suite/views" },
