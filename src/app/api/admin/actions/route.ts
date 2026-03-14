@@ -86,16 +86,17 @@ export async function POST(request: Request) {
       }
 
       case "invite_user": {
-        const { org_id, email } = body;
+        const { org_id, email, role } = body;
         if (!org_id || !email) {
           return NextResponse.json(
             { error: "Missing org_id or email" },
             { status: 400 }
           );
         }
+        const inviteRole = role === "admin" ? "admin" : "member";
         const { error } = await adminClient.auth.admin.inviteUserByEmail(
           email,
-          { data: { org_id } }
+          { data: { org_id, role: inviteRole } }
         );
         if (error) throw error;
 
@@ -103,11 +104,40 @@ export async function POST(request: Request) {
         await adminClient.from("team_invites").insert({
           org_id,
           email,
-          role: "member",
+          role: inviteRole,
           invited_by: user.id,
         });
 
         return NextResponse.json({ success: true });
+      }
+
+      case "create_org": {
+        const { org_display_name, legal_name, plan_tier } = body;
+        if (!org_display_name) {
+          return NextResponse.json(
+            { error: "Missing org display name" },
+            { status: 400 }
+          );
+        }
+        const tier = ["starter", "growth", "pro"].includes(plan_tier)
+          ? plan_tier
+          : "starter";
+        const slug = org_display_name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+        const { data: newOrg, error } = await adminClient
+          .from("orgs")
+          .insert({
+            name: slug,
+            org_display_name,
+            legal_name: legal_name || null,
+            plan_tier: tier,
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        return NextResponse.json({ success: true, org_id: newOrg.id });
       }
 
       default:

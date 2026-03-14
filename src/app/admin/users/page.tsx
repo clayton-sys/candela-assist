@@ -16,6 +16,11 @@ interface UserRow {
   disabled: boolean;
 }
 
+interface OrgOption {
+  id: string;
+  label: string;
+}
+
 type SortKey = "created_at" | "last_active" | "org_name";
 
 export default function AdminUsersPage() {
@@ -23,6 +28,14 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("created_at");
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteOrgId, setInviteOrgId] = useState("");
+  const [inviteRole, setInviteRole] = useState<"admin" | "member">("member");
+  const [orgs, setOrgs] = useState<OrgOption[]>([]);
+  const [inviting, setInviting] = useState(false);
+  const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
+  const [inviteError, setInviteError] = useState<string | null>(null);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -106,9 +119,53 @@ export default function AdminUsersPage() {
     setLoading(false);
   }, [supabase]);
 
+  const fetchOrgs = useCallback(async () => {
+    const { data } = await supabase
+      .from("orgs")
+      .select("id, name, org_display_name")
+      .order("org_display_name");
+    if (data) {
+      setOrgs(
+        data.map((o) => ({
+          id: o.id,
+          label: o.org_display_name ?? o.name ?? "Unnamed",
+        }))
+      );
+    }
+  }, [supabase]);
+
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
+    fetchOrgs();
+  }, [fetchUsers, fetchOrgs]);
+
+  async function handleInvite() {
+    if (!inviteEmail || !inviteOrgId) return;
+    setInviting(true);
+    setInviteError(null);
+    setInviteSuccess(null);
+    try {
+      const res = await fetch("/api/admin/actions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "invite_user",
+          email: inviteEmail,
+          org_id: inviteOrgId,
+          role: inviteRole,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to invite user");
+      setInviteSuccess(`Invitation sent to ${inviteEmail}`);
+      setInviteEmail("");
+      setInviteRole("member");
+    } catch (err) {
+      setInviteError(err instanceof Error ? err.message : "Failed to invite user");
+    } finally {
+      setInviting(false);
+    }
+  }
 
   const filtered = users.filter(
     (u) =>
@@ -131,15 +188,107 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <h1
-        className="text-2xl text-[#E9C03A] mb-6"
-        style={{
-          fontFamily: "'Cormorant Garamond', Georgia, serif",
-          fontWeight: 600,
-        }}
-      >
-        All Users
-      </h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1
+          className="text-2xl text-[#E9C03A]"
+          style={{
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontWeight: 600,
+          }}
+        >
+          All Users
+        </h1>
+        <button
+          onClick={() => {
+            setShowInvite(true);
+            setInviteSuccess(null);
+            setInviteError(null);
+          }}
+          className="px-4 py-2 rounded-lg bg-[#E9C03A] text-[#1B2B3A] text-sm font-semibold hover:bg-[#f5e08a] transition-colors"
+        >
+          Invite User
+        </button>
+      </div>
+
+      {/* Invite User Modal */}
+      {showInvite && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-[#1B2B3A] rounded-lg border border-[#3A6B8A]/30 p-6 w-full max-w-md mx-4">
+            <h2
+              className="text-lg text-[#E9C03A] mb-4"
+              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 600 }}
+            >
+              Invite User
+            </h2>
+
+            {inviteSuccess && (
+              <div className="mb-4 px-3 py-2 rounded bg-[#1D9E75]/20 text-[#1D9E75] text-sm">
+                {inviteSuccess}
+              </div>
+            )}
+            {inviteError && (
+              <div className="mb-4 px-3 py-2 rounded bg-[#D85A30]/20 text-[#D85A30] text-sm">
+                {inviteError}
+              </div>
+            )}
+
+            <label className="block text-[#EDE8DE]/70 text-xs uppercase tracking-wider mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="user@example.com"
+              className="w-full px-3 py-2 mb-4 rounded-lg bg-[#0f1c27] border border-[#3A6B8A]/30 text-[#EDE8DE] text-sm placeholder:text-[#EDE8DE]/30 focus:outline-none focus:border-[#E9C03A]/50"
+            />
+
+            <label className="block text-[#EDE8DE]/70 text-xs uppercase tracking-wider mb-1">
+              Organization
+            </label>
+            <select
+              value={inviteOrgId}
+              onChange={(e) => setInviteOrgId(e.target.value)}
+              className="w-full px-3 py-2 mb-4 rounded-lg bg-[#0f1c27] border border-[#3A6B8A]/30 text-[#EDE8DE] text-sm"
+            >
+              <option value="">Select an org...</option>
+              {orgs.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+
+            <label className="block text-[#EDE8DE]/70 text-xs uppercase tracking-wider mb-1">
+              Role
+            </label>
+            <select
+              value={inviteRole}
+              onChange={(e) => setInviteRole(e.target.value as "admin" | "member")}
+              className="w-full px-3 py-2 mb-6 rounded-lg bg-[#0f1c27] border border-[#3A6B8A]/30 text-[#EDE8DE] text-sm"
+            >
+              <option value="member">Member</option>
+              <option value="admin">Admin</option>
+            </select>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowInvite(false)}
+                className="px-4 py-2 rounded-lg border border-[#3A6B8A]/30 text-[#EDE8DE]/70 text-sm hover:bg-[#0f1c27] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleInvite}
+                disabled={inviting || !inviteEmail || !inviteOrgId}
+                className="px-4 py-2 rounded-lg bg-[#E9C03A] text-[#1B2B3A] text-sm font-semibold hover:bg-[#f5e08a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {inviting ? "Sending..." : "Send Invite"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search + Sort */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
