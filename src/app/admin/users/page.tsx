@@ -35,6 +35,7 @@ export default function AdminUsersPage() {
   const [inviting, setInviting] = useState(false);
   const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
+  const [resetStatus, setResetStatus] = useState<Record<string, "sending" | "sent" | "error">>({});
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -104,6 +105,28 @@ export default function AdminUsersPage() {
       setInviteError(err instanceof Error ? err.message : "Failed to invite user");
     } finally {
       setInviting(false);
+    }
+  }
+
+  async function handleSendReset(userId: string, email: string) {
+    if (!email) return;
+    setResetStatus((prev) => ({ ...prev, [userId]: "sending" }));
+    try {
+      const res = await fetch("/api/admin/send-reset-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-key": process.env.NEXT_PUBLIC_ADMIN_KEY!,
+        },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to send reset email");
+      }
+      setResetStatus((prev) => ({ ...prev, [userId]: "sent" }));
+    } catch {
+      setResetStatus((prev) => ({ ...prev, [userId]: "error" }));
     }
   }
 
@@ -324,6 +347,19 @@ export default function AdminUsersPage() {
                     >
                       View
                     </Link>
+                    <button
+                      onClick={() => handleSendReset(u.user_id, u.email)}
+                      disabled={!u.email || resetStatus[u.user_id] === "sending"}
+                      className="text-[#3A6B8A] hover:underline text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {resetStatus[u.user_id] === "sending"
+                        ? "Sending..."
+                        : resetStatus[u.user_id] === "sent"
+                        ? "Sent!"
+                        : resetStatus[u.user_id] === "error"
+                        ? "Failed"
+                        : "Send Reset Email"}
+                    </button>
                   </td>
                 </tr>
               ))
