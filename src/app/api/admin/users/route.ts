@@ -24,6 +24,7 @@ export async function GET(request: Request) {
       .order("created_at", { ascending: false });
 
     if (error) {
+      console.error("org_users query error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
