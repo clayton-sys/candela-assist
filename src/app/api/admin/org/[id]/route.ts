@@ -23,7 +23,7 @@ export async function GET(
     const { data: org, error: orgError } = await adminClient
       .from("orgs")
       .select(
-        "id, name, org_display_name, legal_name, website, org_type, mission_statement, plan_tier, brand_primary, brand_logo_url"
+        "id, name, legal_name, website, org_type, mission_statement, plan, brand_primary, brand_logo_url"
       )
       .eq("id", orgId)
       .single();
