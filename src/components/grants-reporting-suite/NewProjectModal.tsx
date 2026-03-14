@@ -101,7 +101,11 @@ export default function NewProjectModal({
 
     try {
       const supabase = createClient();
-      if (!orgId || !userId) return;
+      if (!orgId || !userId) {
+        console.error("New Project modal: missing orgId or userId", { orgId, userId });
+        setCreating(false);
+        return;
+      }
 
       // Create program if needed
       let finalProgramId = programId;
@@ -128,7 +132,6 @@ export default function NewProjectModal({
           org_id: orgId,
           name: projectName.trim(),
           funder_name: funderName.trim() || null,
-          period_label: periodLabel.trim() || null,
           program_id: finalProgramId,
           project_type: projectType,
           status: "in_progress",
