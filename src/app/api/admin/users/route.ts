@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     const { data: orgUsers, error } = await adminClient
       .from("org_users")
       .select(
-        "user_id, disabled, created_at, orgs(id, name, plan)"
+        "user_id, role, created_at, orgs(id, name, plan)"
       )
       .order("created_at", { ascending: false });
 
@@ -78,7 +78,7 @@ export async function GET(request: Request) {
           plan: org?.plan ?? "starter",
           created_at: ou.created_at,
           last_active: lastActive,
-          disabled: ou.disabled,
+          disabled: false,
         };
       })
     );
