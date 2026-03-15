@@ -14,7 +14,7 @@ export default function EditPage() {
 
   useEffect(() => {
     if (selectedDataPoints.length === 0) {
-      router.replace("/app/grants-reporting-suite/analysis");
+      router.replace("/app/impact-studio/analysis");
       return;
     }
     setPoints(selectedDataPoints.map((p) => ({ ...p })));
@@ -41,7 +41,7 @@ export default function EditPage() {
 
   function handleContinue() {
     setEditedDataPoints(points);
-    router.push("/app/grants-reporting-suite/views");
+    router.push("/app/impact-studio/views");
   }
 
   return (

@@ -13,9 +13,9 @@ import {
   ChevronRight,
   Search,
 } from "lucide-react";
-import ProjectCard from "@/components/grants-reporting-suite/ProjectCard";
-import type { Project } from "@/components/grants-reporting-suite/ProjectCard";
-import NewProjectModal from "@/components/grants-reporting-suite/NewProjectModal";
+import ProjectCard from "@/components/impact-studio/ProjectCard";
+import type { Project } from "@/components/impact-studio/ProjectCard";
+import NewProjectModal from "@/components/impact-studio/NewProjectModal";
 
 type SortKey = "updated_at" | "status" | "funder_name" | "program_name";
 type StatusFilter = "all" | "in_progress" | "waiting" | "ready" | "complete";
@@ -230,7 +230,7 @@ export default function WorkspacePage() {
   function handleProjectClick(project: Project) {
     reset();
     setProjectId(project.id);
-    router.push("/app/grants-reporting-suite/input");
+    router.push("/app/impact-studio/input");
   }
 
   function handleViewStripClick(project: Project) {

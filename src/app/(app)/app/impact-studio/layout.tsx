@@ -1,7 +1,7 @@
 "use client";
 
 import { GrantsWizardProvider } from "./context/GrantsWizardContext";
-import StepIndicator from "@/components/grants-reporting-suite/StepIndicator";
+import StepIndicator from "@/components/impact-studio/StepIndicator";
 
 export default function GrantsReportingSuiteLayout({
   children,

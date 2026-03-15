@@ -1,6 +1,6 @@
 "use client";
 
-import type { DataPoint } from "@/app/(app)/app/grants-reporting-suite/context/GrantsWizardContext";
+import type { DataPoint } from "@/app/(app)/app/impact-studio/context/GrantsWizardContext";
 
 interface DataPointChipsProps {
   category: string;

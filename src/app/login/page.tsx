@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") ?? "/app/grants-reporting-suite";
+  const redirectTo = searchParams.get("redirectTo") ?? "/app/impact-studio";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

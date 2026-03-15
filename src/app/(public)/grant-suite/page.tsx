@@ -129,7 +129,7 @@ export default function GrantSuitePage() {
           for funders.
         </p>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <Button variant="primary" size="lg" href="/app/grants-reporting-suite">
+          <Button variant="primary" size="lg" href="/app/impact-studio">
             Open Grant Suite &rarr;
           </Button>
           <Button variant="ghost" size="lg" href="mailto:hello@candela.education">
@@ -343,7 +343,7 @@ export default function GrantSuitePage() {
           Start building logic models, evaluation plans, and grant reports
           today.
         </p>
-        <Button variant="primary" size="lg" href="/app/grants-reporting-suite">
+        <Button variant="primary" size="lg" href="/app/impact-studio">
           Get started &rarr;
         </Button>
       </section>

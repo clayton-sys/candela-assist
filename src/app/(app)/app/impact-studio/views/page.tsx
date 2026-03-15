@@ -109,7 +109,7 @@ export default function ViewsPage() {
 
   useEffect(() => {
     if (editedDataPoints.length === 0) {
-      router.replace("/app/grants-reporting-suite/edit");
+      router.replace("/app/impact-studio/edit");
     }
   }, [editedDataPoints, router]);
 
@@ -133,7 +133,7 @@ export default function ViewsPage() {
     setContextLayout(selectedLayout);
 
     try {
-      const res = await fetch("/api/grants/generate", {
+      const res = await fetch("/api/impact/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -153,7 +153,7 @@ export default function ViewsPage() {
 
       const data = await res.json();
       sessionStorage.setItem("grs-outputs", JSON.stringify(data.outputs));
-      router.push("/app/grants-reporting-suite/output");
+      router.push("/app/impact-studio/output");
     } catch {
       setError("Failed to generate views. Please try again.");
       setGenerating(false);

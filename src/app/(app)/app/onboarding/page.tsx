@@ -103,7 +103,7 @@ export default function OnboardingPage() {
     setAnalyzing(true);
     try {
       // 1) Analyze
-      const analyzeRes = await fetch("/api/grants/analyze", {
+      const analyzeRes = await fetch("/api/impact/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rawData }),
@@ -120,7 +120,7 @@ export default function OnboardingPage() {
       setGenerating(true);
 
       // 2) Generate command_center view
-      const genRes = await fetch("/api/grants/generate", {
+      const genRes = await fetch("/api/impact/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

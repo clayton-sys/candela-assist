@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useGrantsWizard } from "../context/GrantsWizardContext";
-import BrandKitForm from "@/components/grants-reporting-suite/BrandKitForm";
+import BrandKitForm from "@/components/impact-studio/BrandKitForm";
 
 const DEFAULT_BRAND = {
   brandPrimary: "#1B2B3A",
@@ -48,7 +48,7 @@ export default function BrandPage() {
       // Starter users skip brand — apply defaults and go to analysis
       if (userPlan === "starter") {
         setBrandKit(DEFAULT_BRAND);
-        router.replace("/app/grants-reporting-suite/analysis");
+        router.replace("/app/impact-studio/analysis");
         return;
       }
 
@@ -84,7 +84,7 @@ export default function BrandPage() {
         isPro={plan === "pro"}
         onContinue={(kit) => {
           setBrandKit(kit);
-          router.push("/app/grants-reporting-suite/analysis");
+          router.push("/app/impact-studio/analysis");
         }}
       />
     </div>

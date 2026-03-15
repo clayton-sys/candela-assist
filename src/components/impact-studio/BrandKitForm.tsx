@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowRight, Upload } from "lucide-react";
-import type { BrandKit } from "@/app/(app)/app/grants-reporting-suite/context/GrantsWizardContext";
+import type { BrandKit } from "@/app/(app)/app/impact-studio/context/GrantsWizardContext";
 
 interface BrandKitFormProps {
   isPro: boolean;

@@ -17,7 +17,7 @@ const PRODUCTS = [
     title: "Grants & Reporting Suite",
     description:
       "Build logic models, evaluation plans, and reporting dashboards to strengthen your grant applications.",
-    href: "/app/grants-reporting-suite",
+    href: "/app/impact-studio",
     icon: BarChart3,
     isNew: true,
   },

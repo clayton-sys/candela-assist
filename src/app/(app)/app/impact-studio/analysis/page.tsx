@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useGrantsWizard } from "../context/GrantsWizardContext";
 import type { DataPoint } from "../context/GrantsWizardContext";
 import { ArrowRight, Lightbulb } from "lucide-react";
-import DataPointChips from "@/components/grants-reporting-suite/DataPointChips";
+import DataPointChips from "@/components/impact-studio/DataPointChips";
 
 const CATEGORY_LABELS: Record<string, string> = {
   outcomes: "Core Outcomes",
@@ -31,13 +31,13 @@ export default function AnalysisPage() {
   useEffect(() => {
     if (analysisResults) return;
     if (!rawData) {
-      router.replace("/app/grants-reporting-suite/input");
+      router.replace("/app/impact-studio/input");
       return;
     }
 
     async function analyze() {
       try {
-        const res = await fetch("/api/grants/analyze", {
+        const res = await fetch("/api/impact/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ rawData }),
@@ -88,7 +88,7 @@ export default function AnalysisPage() {
     const selected = points.filter((p) => p.selected);
     setSelectedDataPoints(selected);
     setAnalysisResults({ dataPoints: points, insights });
-    router.push("/app/grants-reporting-suite/edit");
+    router.push("/app/impact-studio/edit");
   }
 
   const selectedCount = points.filter((p) => p.selected).length;

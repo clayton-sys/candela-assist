@@ -4,19 +4,19 @@ import { usePathname } from "next/navigation";
 import { Check } from "lucide-react";
 
 const STEPS = [
-  { label: "Workspace", path: "/app/grants-reporting-suite" },
-  { label: "Input", path: "/app/grants-reporting-suite/input" },
-  { label: "Analysis", path: "/app/grants-reporting-suite/analysis" },
-  { label: "Edit", path: "/app/grants-reporting-suite/edit" },
-  { label: "Views", path: "/app/grants-reporting-suite/views" },
-  { label: "Output", path: "/app/grants-reporting-suite/output" },
+  { label: "Workspace", path: "/app/impact-studio" },
+  { label: "Input", path: "/app/impact-studio/input" },
+  { label: "Analysis", path: "/app/impact-studio/analysis" },
+  { label: "Edit", path: "/app/impact-studio/edit" },
+  { label: "Views", path: "/app/impact-studio/views" },
+  { label: "Output", path: "/app/impact-studio/output" },
 ];
 
 export default function StepIndicator() {
   const pathname = usePathname();
 
   const currentIndex = STEPS.findIndex((s) =>
-    s.path === "/app/grants-reporting-suite"
+    s.path === "/app/impact-studio"
       ? pathname === s.path
       : pathname.startsWith(s.path)
   );

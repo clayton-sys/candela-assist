@@ -33,7 +33,7 @@ export default function OutputPage() {
       setOutputs(parsed);
       setActiveTab(Object.keys(parsed)[0] ?? "");
     } else if (selectedViews.length === 0) {
-      router.replace("/app/grants-reporting-suite/views");
+      router.replace("/app/impact-studio/views");
     }
   }, [selectedViews, router]);
 
@@ -149,7 +149,7 @@ export default function OutputPage() {
     if (!editInstruction.trim() || !activeTab) return;
     setEditing(true);
     try {
-      const res = await fetch("/api/grants/edit", {
+      const res = await fetch("/api/impact/edit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

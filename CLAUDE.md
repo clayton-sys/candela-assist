@@ -1,118 +1,167 @@
-# CLAUDE.md — Candela Assist
+## Who I Am
+I'm Clayton, founder of CG Consulting d/b/a Candela — an AI consulting 
+and education platform serving nonprofits. I have 10+ years of nonprofit 
+leadership experience (most recently senior leadership at CWEE), a 
+master's in clinical mental health counseling, and I'm an OIF veteran. 
+I build with deep domain knowledge of how nonprofits actually operate.
 
-> This file is read automatically by Claude Code at the start of every session.
-> Keep it updated as the project evolves. It is the source of truth for session context.
+## Candela — Full Platform Architecture
+One platform. One org account per nonprofit. Subscription controls 
+access. Every suite and product has its own separate workspace.
 
----
+**Legal entity:** CG Consulting d/b/a Candela
+**Domain:** candela.education
+**Tagline:** "La luz que guía"
 
-## Project Overview
-Candela Assist is an AI-powered documentation platform for nonprofits, built by CG Consulting d/b/a Candela. It has two core tool suites:
+| Product | What It Is | Type |
+|---|---|---|
+| Candela Assist | AI tools platform — contains Impact Studio and Fieldwork | Core platform |
+| Candela Academy | Video education library for nonprofit staff | Add-on subscription |
+| Candela Consulting | AI readiness assessments, implementation sprints, retainer engagements | Services (no build) |
 
-- **Case Manager Suite** — generates progress notes, referral letters, and safety plan summaries. No client PII stored.
-- **Grant Suite** — structured 5-question intake flow → funder-ready grant report narratives. Designed for program staff, not grant writers.
+## Candela Assist
+AI tools platform for nonprofits. Two suites, each with its own 
+separate workspace.
 
-**Owner:** Clayton @ CG Consulting | candela.education
-**Deployment:** Vercel | **DB/Auth:** Supabase | **Payments:** Stripe
+**Stack:** Next.js 14 (App Router), Tailwind CSS, Supabase (auth + DB), 
+Anthropic API (claude-sonnet-4-20250514), Stripe, Vercel, Upstash Redis
 
----
+### Suite 1 — Impact Studio
+**Users:** Operations staff, program directors, leadership
+**Job:** Turn program data into tailored outputs that communicate 
+organizational impact to specific audiences — boards, funders, website, 
+staff dashboards, marketing, fundraising.
+**Subscription:** Core Candela Assist tier
 
-## Tech Stack
-| Layer | Tech |
+This is data storytelling, not reporting. The output is the product.
+
+**Workspace architecture (locked):**
+- Data Area — persistent org program data, maintained independently of 
+  any output generation. Source of truth for all generated content. 
+  Never re-entered during generation.
+- Projects Area — persistent library of all generated outputs.
+
+**Generator flow (separate from workspace):**
+1. Scope — program-specific or whole agency?
+2. Data points — which metrics to include
+3. View — output type and theme
+4. Edit — review and refine
+5. Output — saved to Projects
+
+Whole-agency scope aggregates program_data entries for a given period 
+at the generator level. No special schema row needed.
+
+### Suite 2 — Fieldwork
+**Users:** Case managers, care coordinators, navigators, direct service 
+staff
+**Job:** Reduce documentation burden — progress notes, referral letters, 
+safety plan summaries. No client PII stored or logged.
+**Subscription:** Add-on (separate workspace)
+**Compliance gate:** HIPAA infrastructure required before public launch
+
+**Critical UX detail:** After a progress note is generated, a blank 
+"Client Name:" field must appear at the top. Never pre-filled.
+
+### Candela Academy
+Separate product — not part of Candela Assist. Video education library.
+All-or-nothing add-on subscription. Same org account. Separate workspace.
+Two tracks: Program/Direct Staff + Operations.
+Status: YouTube-first. 4 videos before going public.
+
+## Brand — Never Deviate
+| Token | Hex |
 |---|---|
-| Framework | Next.js 14 (App Router) |
-| Styling | Tailwind CSS (utility-first, no custom CSS files) |
-| Database + Auth | Supabase |
-| AI | Anthropic API — always use `claude-sonnet-4-20250514` |
-| Payments | Stripe |
-| Rate Limiting | Upstash Redis — **required before any public URL** |
-| Hosting | Vercel |
+| Midnight Ink | #1B2B3A |
+| Solar Gold | #E9C03A |
+| Warm Stone | #EDE8DE |
+| Cerulean | #3A6B8A |
 
----
+**Fonts:** Cormorant Garamond (display/headings) + DM Sans (body/UI)
+**Retired fonts (never use):** Fraunces, Jost, DM Mono
+**Logo:** C-arc mark — lit neon-tube C with rays. Canonical March 13, 2026.
 
-## Folder Conventions
+## Database Schema (Target — Empty, No Migration Needed)
+Old programs.metrics jsonb array replaced by purpose-built tables.
+
+| Table | Purpose |
+|---|---|
+| orgs | Org account |
+| programs | Program definition — name, description, archived |
+| program_metrics | What a program tracks — metric_name, target, display_order |
+| program_data | Persistent data layer — one row per program per period |
+| program_data_points | Actual metric values per data entry |
+| projects | Output library — scope chosen in generator |
+| project_runs | References program_data via data_entry_id — no inline data collection |
+| generated_views | Output HTML per run |
+| brand_kits | Org branding |
+| org_users | User-to-org membership |
+| team_invites | Team invitations |
+| logic_models | Logic model outputs |
+
+## Admin Auth Pattern (Locked)
+x-admin-key header only. Never query Supabase directly from 
+`use client` components in /admin — RLS blocks it. Always use API 
+routes with service role client.
+
+Env vars required:
+- ADMIN_USER_ID = Clayton's Supabase UUID
+- SUPABASE_SERVICE_ROLE_KEY = from Supabase → Settings → API
+- ADMIN_KEY = candela-admin-2026
+- NEXT_PUBLIC_ADMIN_KEY = candela-admin-2026
+
+## Git Rules (Locked)
+- Always branch: `git checkout -b fix/description` or `feat/description`
+- Never `git add .` from root — always `git add src/ supabase/`
+- Never `git push --force` without flagging to Clayton first
+- Always test locally before merging: checkout → npm run dev → 
+  localhost:3001 → confirm → merge to main
+- Windows/PowerShell: `Remove-Item -Recurse -Force .next` not rm -rf
+- Run commands one at a time, never chained with &&
+- Project root is C:\Users\17192 — never cd candela-assist
+- End every prompt with the standard test reminder message
+
+## Claude Code Autonomous Run
+```bash
+claude --dangerously-skip-permissions
 ```
-/app               → Next.js App Router pages and layouts
-/app/api           → API routes (including Anthropic calls)
-/components        → Reusable UI components
-/lib               → Shared utilities
-/lib/anthropic.ts  → All Anthropic API calls go here — never inline elsewhere
-/lib/supabase.ts   → Supabase client
-/lib/redis.ts      → Upstash rate limiting logic
-/types             → TypeScript types and interfaces
-```
+End every Claude Code prompt with: "When complete, push the branch 
+only. Display this message: 'Branch pushed. Before merging, test 
+locally: git checkout [branch-name] → npm run dev — test on 
+localhost:3001 before merging to main.'"
 
----
+## Phase Roadmap
+- Phase 1: Policy Q&A chatbot — deferred
+- Phase 2: Impact Studio + Fieldwork — active build
+- Phase 3: Workflow integrations — future
+- Phase 4: HIPAA-compliant infrastructure — required before Fieldwork launch
 
-## Brand Tokens
-Always use these — never substitute generic colors.
-```css
---gold:           #E9C03A;   /* primary accent / CTAs / C-arc */
---gold-pale:      #f5e08a;   /* highlight layer in gradients */
---gold-dim:       #b8741a;   /* shadow layer in gradients */
---ink:            #1B2B3A;   /* mid-dark surfaces, nav, cards */
---ink-deep:       #0f1c27;   /* primary dark background / website canvas */
---stone:          #EDE8DE;   /* light backgrounds / body text on dark */
---stone-dim:      #d8d2c4;   /* borders on light surfaces */
---cerulean:       #3A6B8A;   /* inner arc, secondary data, links */
---cerulean-light: #5a8fad;   /* hover states, gradient endpoints */
---teal:           #1D9E75;   /* success / positive outcomes */
---coral:          #D85A30;   /* at-risk / warning */
---amber:          #BA7517;   /* watch / monitoring */
+## Current Priorities
+- [ ] Fix admin orgs/users RLS — fix prompt in handoff doc
+- [ ] Invite Kelsey, complete testing
+- [ ] App walkthrough against Source of Truth — build triage list
+- [ ] Schema rebuild in Supabase — new program_data layer
+- [ ] Workspace redesign — Data area + Projects area decoupled
+- [ ] Denver nonprofit pilot outreach
+- [ ] SAM.gov registration + SBA VetCert
 
-/* Typography */
---font-display: 'Cormorant Garamond', Georgia, serif;  /* headings, H1-H3, wordmark */
---font-body:    'DM Sans', system-ui, sans-serif;       /* body, UI, labels */
-```
-**Retired fonts:** Fraunces, Jost, DM Mono — do not use.
+## Legal / Compliance
+- Colorado AI Act effective June 30, 2026
+- HIPAA / BAAs required before any client health data — Phase 4 gate
+- 42 CFR Part 2 relevant for substance use data
+- Data ownership agreements needed with nonprofit partners
+- First legal resource: CU Law Entrepreneurial Law Clinic
 
----
+## Workflow Preferences
+- Chat = brainstorm, design, draft prompts. Refine before coding.
+- Claude Code = execution only on clean, scoped tasks.
+- Keep responses focused. One clarifying question, not assumptions.
+- Explain architecture tradeoffs briefly.
+- Notion is the primary doc hub — flag anything to save.
+- No generic AI/SaaS advice ignoring nonprofit context.
+- No over-engineered solutions — solo founder, keep it lean.
+- No explanations of basic nonprofit concepts.
 
-## Coding Rules
-- **TypeScript everywhere.** No plain JS files.
-- **Tailwind only** for styling. No CSS modules, no styled-components.
-- **All Anthropic calls** go through `/lib/anthropic.ts` — never make raw fetch calls to the API from components or pages.
-- **No client PII** stored in the database. Case manager inputs are processed and discarded — outputs only.
-- **Rate limiting middleware** must be active on all AI-powered routes before deploying to a public URL.
-- Use `async/await`, not `.then()` chains.
-- Prefer explicit error handling with `try/catch` over silent failures.
-
----
-
-## AI / Prompt Rules
-- Model: `claude-sonnet-4-20250514` — do not change without explicit instruction
-- Max tokens by output type:
-  - Progress notes, referral letters, safety plan summaries → 1000
-  - Grant report narratives → 2000
-- System prompts live in `/lib/prompts/` as named `.ts` files — not inline in API routes
-  - Case Manager Suite prompts: `/lib/prompts/case-manager/`
-  - Grant Suite prompts: `/lib/prompts/grant-suite/`
-- Grant Suite intake is a **5-question structured flow** — the prompt receives all 5 answers before generating output, not one at a time
-- Never log user input content to the console in production
-
----
-
-## Security / Compliance Rules
-- **Never commit API keys.** Use `.env.local` for all secrets.
-- Rate limiting via Upstash Redis is **non-negotiable** on all `/api/ai/*` routes.
-- Colorado AI Act effective June 30, 2026 — flag any feature that makes automated decisions affecting users.
-- HIPAA / BAA infrastructure is **Phase 4** — do not build toward it yet unless explicitly instructed.
-- 42 CFR Part 2 applies to any substance-use-related data — flag before building any such feature.
-
----
-
-## Current Sprint
-> Update this section at the start of each new work session.
-
-**Phase:** 2 — Case Manager Documentation Assistant
-**In progress:** [update per session]
-**Blocked on:** [update per session]
-**Next up:** [update per session]
-
----
-
-## Do Not
-- Bypass or remove rate limiting middleware
-- Store or log any case manager input content
-- Use a different Anthropic model without instruction
-- Add external dependencies without discussing tradeoffs first (solo founder, keep it lean)
-- Write inline styles or override Tailwind with custom CSS
+## Source of Truth
+⚓ Candela Assist — Source of Truth (Clean Anchor) in Notion is the 
+authoritative reference for all product decisions. Read it before 
+building anything.

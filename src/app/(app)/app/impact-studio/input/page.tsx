@@ -24,7 +24,7 @@ export default function InputPage() {
     setRawData(localData);
     setPeriodLabel(localPeriod);
     setSourceType(localSource);
-    router.push("/app/grants-reporting-suite/analysis");
+    router.push("/app/impact-studio/analysis");
   }
 
   const canContinue = localData.trim().length > 0;

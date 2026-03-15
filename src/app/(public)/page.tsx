@@ -19,7 +19,7 @@ const PRODUCTS = [
     description:
       "Logic models, evaluation plans, grant reports, and funder-ready dashboards — generated from your program data in minutes.",
     ctaLabel: "Learn more →",
-    ctaHref: "/app/grants-reporting-suite",
+    ctaHref: "/app/impact-studio",
     accentColor: "#5a8fad",
     bgGradient: "linear-gradient(135deg, rgba(58,107,138,0.12) 0%, rgba(15,28,39,0.6) 100%)",
     borderGradient: "linear-gradient(90deg, #3A6B8A, transparent) 1",
