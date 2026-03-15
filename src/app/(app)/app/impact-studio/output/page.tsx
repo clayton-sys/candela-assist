@@ -17,13 +17,14 @@ const VIEW_LABELS: Record<string, string> = {
 
 export default function OutputPage() {
   const router = useRouter();
-  const { runId, selectedViews } = useGrantsWizard();
+  const { runId, setRunId, setProjectId, selectedViews } = useGrantsWizard();
   const [outputs, setOutputs] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<string>("");
   const [editInstruction, setEditInstruction] = useState("");
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const viewContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -170,21 +171,86 @@ export default function OutputPage() {
   }
 
   async function handleSave() {
-    if (!runId) return;
     setSaving(true);
-    const supabase = createClient();
+    setSaveError("");
+    setSaved(false);
 
-    const entries = Object.entries(outputs);
-    for (const [viewType, html] of entries) {
-      await supabase.from("generated_views").upsert(
-        { run_id: runId, view_type: viewType, output_html: html },
-        { onConflict: "run_id,view_type" }
-      );
+    try {
+      const supabase = createClient();
+      let activeRunId = runId;
+
+      // If no run exists yet, create a project + run on the fly
+      if (!activeRunId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setSaveError("Not signed in"); setSaving(false); return; }
+
+        const { data: orgUser } = await supabase
+          .from("org_users")
+          .select("org_id")
+          .eq("user_id", user.id)
+          .single();
+        if (!orgUser) { setSaveError("No organization found"); setSaving(false); return; }
+
+        const { data: project, error: projErr } = await supabase
+          .from("projects")
+          .insert({
+            org_id: orgUser.org_id,
+            name: `Generated Output — ${new Date().toLocaleDateString()}`,
+            project_type: "output_generator",
+            status: "in_progress",
+            created_by: user.id,
+          })
+          .select("id")
+          .single();
+        if (projErr || !project) { setSaveError("Failed to create project"); setSaving(false); return; }
+
+        const { data: run, error: runErr } = await supabase
+          .from("project_runs")
+          .insert({
+            project_id: project.id,
+            version_number: 1,
+            is_latest: true,
+          })
+          .select("id")
+          .single();
+        if (runErr || !run) { setSaveError("Failed to create run"); setSaving(false); return; }
+
+        activeRunId = run.id;
+        setRunId(run.id);
+        setProjectId(project.id);
+      }
+
+      // Save each view to generated_views
+      for (const [viewType, html] of Object.entries(outputs)) {
+        const { error } = await supabase.from("generated_views").upsert(
+          { run_id: activeRunId, view_type: viewType, output_html: html },
+          { onConflict: "run_id,view_type" }
+        );
+        if (error) throw error;
+      }
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
     }
+  }
 
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  function handleExport() {
+    const html = outputs[activeTab];
+    if (!html) return;
+    const label = VIEW_LABELS[activeTab] ?? activeTab;
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${label.replace(/\s+/g, "-").toLowerCase()}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   const tabs = Object.keys(outputs);
@@ -214,21 +280,27 @@ export default function OutputPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleSave}
-            disabled={saving || !runId}
+            disabled={saving}
             className="flex items-center gap-2 px-4 py-2 bg-cerulean text-white rounded-lg text-sm font-medium hover:bg-cerulean-dark transition-colors disabled:opacity-40"
             style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
           >
             <Save className="w-4 h-4" />
             {saving ? "Saving..." : saved ? "Saved!" : "Save"}
           </button>
-          {/* TODO: Implement export functionality */}
           <button
-            className="flex items-center gap-2 px-4 py-2 border border-midnight/10 text-midnight/50 rounded-lg text-sm font-medium hover:bg-midnight/5 transition-colors"
+            onClick={handleExport}
+            disabled={!outputs[activeTab]}
+            className="flex items-center gap-2 px-4 py-2 border border-midnight/10 text-midnight/50 rounded-lg text-sm font-medium hover:bg-midnight/5 transition-colors disabled:opacity-40"
             style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
           >
             <Download className="w-4 h-4" />
             Export
           </button>
+          {saveError && (
+            <span className="text-xs text-red-500" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+              {saveError}
+            </span>
+          )}
         </div>
       </div>
 
