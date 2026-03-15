@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -13,6 +13,35 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
+  const [expired, setExpired] = useState(false);
+
+  useEffect(() => {
+    async function ensureSession() {
+      // First check if we already have a session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setSessionReady(true);
+        return;
+      }
+
+      // If no session, Supabase JS may pick up tokens from the URL hash automatically
+      const hash = window.location.hash;
+      if (hash) {
+        // Give Supabase a moment to process the hash tokens
+        const { data: { session: retrySession } } = await supabase.auth.getSession();
+        if (retrySession) {
+          setSessionReady(true);
+          return;
+        }
+      }
+
+      // No session could be established
+      setExpired(true);
+    }
+
+    ensureSession();
+  }, [supabase]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,6 +69,53 @@ export default function ResetPasswordPage() {
 
     setSuccess(true);
     setTimeout(() => router.push("/workspace"), 2000);
+  }
+
+  if (expired) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center px-4"
+        style={{
+          backgroundColor: "#1B2B3A",
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+        }}
+      >
+        <div className="w-full max-w-md text-center">
+          <h1
+            className="text-2xl mb-4"
+            style={{
+              color: "#E9C03A",
+              fontFamily: "'Cormorant Garamond', Georgia, serif",
+              fontWeight: 600,
+            }}
+          >
+            Link Expired
+          </h1>
+          <p className="text-sm" style={{ color: "#EDE8DE" }}>
+            Link expired. Please request a new password reset.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!sessionReady) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: "#1B2B3A" }}
+      >
+        <div className="flex flex-col items-center gap-3">
+          <div
+            className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
+            style={{ borderColor: "#E9C03A", borderTopColor: "transparent" }}
+          />
+          <p className="text-sm" style={{ color: "#EDE8DE" }}>
+            Verifying your link...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

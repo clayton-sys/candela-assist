@@ -16,7 +16,7 @@ export default function AuthCallbackPage() {
       // Check if this is a password recovery flow
       const hash = window.location.hash;
       if (hash.includes("type=recovery")) {
-        router.replace("/auth/reset-password");
+        router.replace(`/auth/reset-password${hash}`);
       } else {
         router.replace("/workspace");
       }
