@@ -35,14 +35,14 @@ export async function POST(req: NextRequest) {
     const message = await client.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 4096,
-      system: `You are a data tagging assistant for nonprofit program reporting. Parse the pasted text and return it reorganized with the following XML-style tags where content is found:
-[outcomes] — measurable results and achievements
-[metrics] — numbers, percentages, counts
-[barriers] — challenges, obstacles, unmet needs
-[client_voice] — quotes or stories from clients
-[change_description] — descriptions of change over time
+      system: `You are a data tagging assistant for nonprofit program reporting. Parse the pasted text and extract content into these exact categories:
+- outcomes: measurable results and achievements
+- quantitative_data: numbers, percentages, counts
+- barriers: challenges, obstacles, unmet needs
+- client_voice: quotes or stories from clients
+- change_description: descriptions of change over time
 
-Return only the tagged content. If a category has no content, omit that tag. Do not add commentary or explanation.`,
+Return ONLY a valid JSON object with these exact keys. If a category has no content, set its value to null. Do not add commentary, explanation, or markdown formatting.`,
       messages: [
         {
           role: "user",
@@ -52,9 +52,27 @@ Return only the tagged content. If a category has no content, omit that tag. Do 
     });
 
     const content = message.content[0];
-    const tagged = content.type === "text" ? content.text.trim() : "";
+    const raw = content.type === "text" ? content.text.trim() : "{}";
 
-    return NextResponse.json({ tagged });
+    // Strip code fences if present
+    const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+    const jsonStr = fenceMatch ? fenceMatch[1].trim() : raw;
+
+    const parsed = JSON.parse(jsonStr) as {
+      outcomes: string | null;
+      quantitative_data: string | null;
+      barriers: string | null;
+      client_voice: string | null;
+      change_description: string | null;
+    };
+
+    return NextResponse.json({
+      outcomes: parsed.outcomes ?? null,
+      quantitative_data: parsed.quantitative_data ?? null,
+      barriers: parsed.barriers ?? null,
+      client_voice: parsed.client_voice ?? null,
+      change_description: parsed.change_description ?? null,
+    });
   } catch (error) {
     console.error("Parse data route error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -12,6 +12,8 @@ import {
   ChevronDown,
   ChevronRight,
   Search,
+  Database,
+  Loader2,
 } from "lucide-react";
 import ProjectCard from "@/components/impact-studio/ProjectCard";
 import type { Project } from "@/components/impact-studio/ProjectCard";
@@ -41,6 +43,63 @@ export default function WorkspacePage() {
   const [programFilter, setProgramFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [archiveOpen, setArchiveOpen] = useState(false);
+
+  // Tab switcher
+  const [activeTab, setActiveTab] = useState<"projects" | "data">("projects");
+
+  // Data tab state
+  interface DataEntry {
+    id: string;
+    period_label: string | null;
+    created_at: string;
+    program_name: string | null;
+  }
+  const [dataEntries, setDataEntries] = useState<DataEntry[]>([]);
+  const [loadingData, setLoadingData] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  const fetchDataEntries = useCallback(async () => {
+    setLoadingData(true);
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: orgUser } = await supabase
+        .from("org_users")
+        .select("org_id")
+        .eq("user_id", user.id)
+        .single();
+      if (!orgUser) return;
+
+      const { data: entries } = await supabase
+        .from("program_data")
+        .select("id, period_label, created_at, program:programs(name)")
+        .eq("org_id", orgUser.org_id)
+        .order("created_at", { ascending: false });
+
+      setDataEntries(
+        (entries ?? []).map((e: Record<string, unknown>) => ({
+          id: e.id as string,
+          period_label: e.period_label as string | null,
+          created_at: e.created_at as string,
+          program_name: (e.program as { name: string } | null)?.name ?? null,
+        }))
+      );
+    } catch (err) {
+      console.error("Failed to fetch data entries:", err);
+    } finally {
+      setLoadingData(false);
+      setDataLoaded(true);
+    }
+  }, []);
+
+  // Fetch data entries when Data tab is first activated
+  useEffect(() => {
+    if (activeTab === "data" && !dataLoaded) {
+      fetchDataEntries();
+    }
+  }, [activeTab, dataLoaded, fetchDataEntries]);
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -261,6 +320,39 @@ export default function WorkspacePage() {
             Your projects and reporting periods
           </p>
         </div>
+      </div>
+
+      {/* Tab Switcher */}
+      <div className="flex gap-1 mb-6 bg-[#1B2B3A]/[0.03] rounded-lg p-1 w-fit">
+        <button
+          onClick={() => setActiveTab("projects")}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === "projects"
+              ? "bg-white text-[#1B2B3A] shadow-sm"
+              : "text-[#1B2B3A]/40 hover:text-[#1B2B3A]/60"
+          }`}
+          style={dmSans}
+        >
+          Projects
+        </button>
+        <button
+          onClick={() => setActiveTab("data")}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === "data"
+              ? "bg-white text-[#1B2B3A] shadow-sm"
+              : "text-[#1B2B3A]/40 hover:text-[#1B2B3A]/60"
+          }`}
+          style={dmSans}
+        >
+          Data
+        </button>
+      </div>
+
+      {/* ═══ PROJECTS TAB ═══ */}
+      {activeTab === "projects" && (
+        <>
+      {/* Projects header */}
+      <div className="flex items-center justify-end mb-4">
         <button
           onClick={() => setShowNewModal(true)}
           className="flex items-center gap-2 px-4 py-2 bg-[#3A6B8A] text-white rounded-lg text-sm font-medium hover:bg-[#2A5570] transition-colors"
@@ -476,6 +568,85 @@ export default function WorkspacePage() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+        </>
+      )}
+
+        </>
+      )}
+
+      {/* ═══ DATA TAB ═══ */}
+      {activeTab === "data" && (
+        <>
+          {/* Data header */}
+          <div className="flex items-center justify-between mb-6">
+            <h2
+              className="text-lg font-semibold text-[#1B2B3A]"
+              style={cormorant}
+            >
+              Program Data
+            </h2>
+            <button
+              onClick={() => router.push("/app/impact-studio/data/add")}
+              className="flex items-center gap-2 px-4 py-2 bg-[#3A6B8A] text-white rounded-lg text-sm font-medium hover:bg-[#2A5570] transition-colors"
+              style={dmSans}
+            >
+              <Plus className="w-4 h-4" />
+              Add Data
+            </button>
+          </div>
+
+          {/* Data entries list */}
+          {loadingData ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-6 h-6 text-[#3A6B8A] animate-spin" />
+            </div>
+          ) : dataEntries.length === 0 ? (
+            <div className="text-center py-20 bg-white/40 rounded-xl border border-[#1B2B3A]/5">
+              <Database className="w-10 h-10 text-[#1B2B3A]/15 mx-auto mb-3" />
+              <p className="text-[#1B2B3A]/40 text-sm" style={dmSans}>
+                No data added yet.
+              </p>
+              <button
+                onClick={() => router.push("/app/impact-studio/data/add")}
+                className="mt-4 px-4 py-2 bg-[#3A6B8A] text-white rounded-lg text-sm font-medium hover:bg-[#2A5570] transition-colors"
+                style={dmSans}
+              >
+                <Plus className="w-4 h-4 inline mr-1" />
+                Add Data
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {dataEntries.map((entry) => (
+                <div
+                  key={entry.id}
+                  onClick={() => router.push(`/app/impact-studio/data/${entry.id}/edit`)}
+                  className="bg-white rounded-xl border border-[#1B2B3A]/5 p-4 flex items-center justify-between cursor-pointer hover:border-[#3A6B8A]/30 hover:bg-[#3A6B8A]/[0.02] transition-colors"
+                >
+                  <div>
+                    <p
+                      className="text-sm font-semibold text-[#1B2B3A]"
+                      style={dmSans}
+                    >
+                      {entry.period_label ?? "Untitled Period"}
+                    </p>
+                    <p
+                      className="text-xs text-[#1B2B3A]/40 mt-0.5"
+                      style={dmSans}
+                    >
+                      {entry.program_name ?? "Org-wide"}
+                    </p>
+                  </div>
+                  <span
+                    className="text-xs text-[#1B2B3A]/30"
+                    style={dmSans}
+                  >
+                    {new Date(entry.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+              ))}
             </div>
           )}
         </>

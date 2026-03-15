@@ -3,19 +3,27 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ArrowLeft, ChevronDown, Loader2, Check } from "lucide-react";
+import { ArrowLeft, Loader2, Check } from "lucide-react";
 
 interface Program {
   id: string;
   name: string;
 }
 
-const TAG_GUIDE: { tag: string; description: string }[] = [
-  { tag: "[outcomes]", description: "Measurable results and achievements" },
-  { tag: "[metrics]", description: "Numbers, percentages, counts" },
-  { tag: "[barriers]", description: "Challenges, obstacles, unmet needs" },
-  { tag: "[client_voice]", description: "Quotes or stories from clients" },
-  { tag: "[change_description]", description: "Descriptions of change over time" },
+interface ParsedTags {
+  outcomes: string | null;
+  quantitative_data: string | null;
+  barriers: string | null;
+  client_voice: string | null;
+  change_description: string | null;
+}
+
+const TAG_CARDS: { key: keyof ParsedTags; label: string; description: string }[] = [
+  { key: "outcomes", label: "Outcomes", description: "Measurable results and achievements" },
+  { key: "quantitative_data", label: "Metrics", description: "Numbers, percentages, counts" },
+  { key: "barriers", label: "Barriers", description: "Challenges, obstacles, unmet needs" },
+  { key: "client_voice", label: "Client Voice", description: "Quotes or stories from clients" },
+  { key: "change_description", label: "Change Description", description: "Descriptions of change over time" },
 ];
 
 const dmSans = { fontFamily: "'DM Sans', system-ui, sans-serif" } as const;
@@ -39,8 +47,7 @@ export default function AddProgramDataPage() {
   const [parseError, setParseError] = useState("");
 
   // Section 3 — Review
-  const [taggedText, setTaggedText] = useState("");
-  const [showTagGuide, setShowTagGuide] = useState(false);
+  const [parsedTags, setParsedTags] = useState<ParsedTags | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -85,7 +92,7 @@ export default function AddProgramDataPage() {
     if (!canParse) return;
     setParsing(true);
     setParseError("");
-    setTaggedText("");
+    setParsedTags(null);
 
     try {
       const res = await fetch("/api/impact/parse-data", {
@@ -102,7 +109,13 @@ export default function AddProgramDataPage() {
       }
 
       const data = await res.json();
-      setTaggedText(data.tagged);
+      setParsedTags({
+        outcomes: data.outcomes ?? null,
+        quantitative_data: data.quantitative_data ?? null,
+        barriers: data.barriers ?? null,
+        client_voice: data.client_voice ?? null,
+        change_description: data.change_description ?? null,
+      });
     } catch {
       setParseError("Failed to parse data. Please try again.");
     } finally {
@@ -110,8 +123,16 @@ export default function AddProgramDataPage() {
     }
   }
 
+  function updateTag(key: keyof ParsedTags, value: string) {
+    setParsedTags((prev) => prev ? { ...prev, [key]: value || null } : prev);
+  }
+
+  const hasAnyContent = parsedTags
+    ? Object.values(parsedTags).some((v) => v && String(v).trim())
+    : false;
+
   async function handleSave() {
-    if (!orgId || !taggedText.trim()) return;
+    if (!orgId || !parsedTags) return;
     setSaving(true);
     setSaveError("");
     setSaved(false);
@@ -124,7 +145,11 @@ export default function AddProgramDataPage() {
         program_id: programId === "org-wide" ? null : programId,
         period_label: periodLabel.trim(),
         data_type: "qualitative",
-        outcomes: taggedText.trim(),
+        outcomes: parsedTags.outcomes ? String(parsedTags.outcomes).trim() || null : null,
+        quantitative_data: parsedTags.quantitative_data ? String(parsedTags.quantitative_data).trim() || null : null,
+        barriers: parsedTags.barriers ? String(parsedTags.barriers).trim() || null : null,
+        client_voice: parsedTags.client_voice ? String(parsedTags.client_voice).trim() || null : null,
+        change_description: parsedTags.change_description ? String(parsedTags.change_description).trim() || null : null,
       });
 
       if (error) throw error;
@@ -269,7 +294,7 @@ export default function AddProgramDataPage() {
         </section>
 
         {/* ── Section 3 — Review Tags ────────────────────────────── */}
-        {taggedText && (
+        {parsedTags && (
           <section>
             <h2
               className="text-base font-semibold text-midnight mb-1"
@@ -277,48 +302,46 @@ export default function AddProgramDataPage() {
             >
               Review Tags
             </h2>
-            <p className="text-xs text-midnight/40 mb-3" style={dmSans}>
-              Review and adjust the tags below before saving.
+            <p className="text-xs text-midnight/40 mb-4" style={dmSans}>
+              Review and adjust each category before saving.
             </p>
 
-            <textarea
-              value={taggedText}
-              onChange={(e) => setTaggedText(e.target.value)}
-              className="w-full min-h-[200px] px-4 py-3 border border-midnight/10 rounded-xl text-sm text-midnight font-mono focus:outline-none focus:ring-2 focus:ring-cerulean/30 focus:border-cerulean resize-y"
-            />
-
-            {/* Tag reference guide */}
-            <div className="mt-3 border border-midnight/5 rounded-lg overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setShowTagGuide(!showTagGuide)}
-                className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium text-midnight/50 hover:bg-midnight/[0.02] transition-colors"
-                style={dmSans}
-              >
-                Tag Reference
-                <ChevronDown
-                  className={`w-3.5 h-3.5 transition-transform ${showTagGuide ? "rotate-180" : ""}`}
-                />
-              </button>
-              {showTagGuide && (
-                <div className="px-4 pb-3 space-y-1.5">
-                  {TAG_GUIDE.map((t) => (
-                    <div key={t.tag} className="flex gap-2 text-xs" style={dmSans}>
-                      <code className="text-cerulean font-mono font-medium whitespace-nowrap">
-                        {t.tag}
-                      </code>
-                      <span className="text-midnight/40">{t.description}</span>
-                    </div>
-                  ))}
+            <div className="space-y-4">
+              {TAG_CARDS.map((card) => (
+                <div
+                  key={card.key}
+                  className="border border-midnight/10 rounded-xl overflow-hidden"
+                >
+                  <div className="px-4 py-3 bg-midnight/[0.02] border-b border-midnight/5">
+                    <p
+                      className="text-sm font-semibold text-midnight"
+                      style={dmSans}
+                    >
+                      {card.label}
+                    </p>
+                    <p
+                      className="text-xs text-midnight/40 mt-0.5"
+                      style={dmSans}
+                    >
+                      {card.description}
+                    </p>
+                  </div>
+                  <textarea
+                    value={parsedTags[card.key] ?? ""}
+                    onChange={(e) => updateTag(card.key, e.target.value)}
+                    placeholder="Nothing found — add manually if needed"
+                    className="w-full min-h-[100px] px-4 py-3 text-sm text-midnight placeholder:text-midnight/25 focus:outline-none resize-y border-none"
+                    style={dmSans}
+                  />
                 </div>
-              )}
+              ))}
             </div>
 
             {/* Save */}
-            <div className="flex items-center gap-3 mt-4">
+            <div className="flex items-center gap-3 mt-6">
               <button
                 onClick={handleSave}
-                disabled={saving || !taggedText.trim()}
+                disabled={saving || !hasAnyContent}
                 className="flex items-center gap-2 px-5 py-2.5 bg-cerulean text-white rounded-lg text-sm font-medium hover:bg-cerulean-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 style={dmSans}
               >
