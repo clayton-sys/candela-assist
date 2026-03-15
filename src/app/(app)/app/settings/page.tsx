@@ -592,11 +592,11 @@ function BrandKitSection({ orgId, plan }: { orgId: string; plan: string | null }
   useEffect(() => {
     async function load() {
       const { data } = await supabase
-        .from("orgs")
+        .from("brand_kits")
         .select(
-          "brand_primary, brand_accent, brand_success, brand_text_on_primary, brand_logo_url, org_display_name, white_label_enabled, custom_center_text"
+          "brand_primary, brand_accent, brand_success, brand_text, logo_url, org_display_name, remove_candela_footer, custom_center_text"
         )
-        .eq("id", orgId)
+        .eq("org_id", orgId)
         .single();
       if (data) {
         const p = data.brand_primary ?? DEFAULT_BRAND.primary;
@@ -606,11 +606,11 @@ function BrandKitSection({ orgId, plan }: { orgId: string; plan: string | null }
         setAccent(a);
         setSuccess(s);
         setHexInputs({ primary: p, accent: a, success: s });
-        setTextOnPrimary(data.brand_text_on_primary ?? DEFAULT_BRAND.textOnPrimary);
+        setTextOnPrimary(data.brand_text ?? DEFAULT_BRAND.textOnPrimary);
         setOrgDisplayName(data.org_display_name ?? "");
         setCenterText(data.custom_center_text ?? "");
-        setWhiteLabel(data.white_label_enabled ?? false);
-        setLogoUrl(data.brand_logo_url ?? null);
+        setWhiteLabel(data.remove_candela_footer ?? false);
+        setLogoUrl(data.logo_url ?? null);
       }
       setLoading(false);
     }
@@ -713,19 +713,27 @@ function BrandKitSection({ orgId, plan }: { orgId: string; plan: string | null }
         finalLogoUrl = publicUrl;
       }
 
-      const { error } = await supabase
-        .from("orgs")
-        .update({
-          brand_primary: primary,
-          brand_accent: accent,
-          brand_success: success,
-          brand_text_on_primary: textOnPrimary,
-          brand_logo_url: finalLogoUrl,
-          org_display_name: orgDisplayName,
-          custom_center_text: centerText,
-          white_label_enabled: whiteLabel,
-        })
-        .eq("id", orgId);
+      const brandPayload = {
+        brand_primary: primary,
+        brand_accent: accent,
+        brand_success: success,
+        brand_text: textOnPrimary,
+        logo_url: finalLogoUrl,
+        org_display_name: orgDisplayName,
+        custom_center_text: centerText,
+        remove_candela_footer: whiteLabel,
+      };
+
+      // Check if a brand_kits row exists for this org
+      const { data: existing } = await supabase
+        .from("brand_kits")
+        .select("id")
+        .eq("org_id", orgId)
+        .single();
+
+      const { error } = existing
+        ? await supabase.from("brand_kits").update(brandPayload).eq("org_id", orgId)
+        : await supabase.from("brand_kits").insert({ org_id: orgId, ...brandPayload });
       if (error) throw error;
 
       setLogoUrl(finalLogoUrl);

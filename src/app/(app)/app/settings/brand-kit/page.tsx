@@ -59,7 +59,7 @@ export default function BrandKitPage() {
 
       const { data: org } = await supabase
         .from("orgs")
-        .select("plan, brand_primary, brand_accent, brand_success, brand_text_on_primary, brand_logo_url, org_display_name, white_label_enabled")
+        .select("plan")
         .eq("id", orgUser.org_id)
         .single();
 
@@ -71,17 +71,25 @@ export default function BrandKitPage() {
       setOrgId(orgUser.org_id);
       setPlan(org.plan);
 
-      const p = org.brand_primary ?? DEFAULT_BRAND.primary;
-      const a = org.brand_accent ?? DEFAULT_BRAND.accent;
-      const s = org.brand_success ?? DEFAULT_BRAND.success;
-      setPrimary(p);
-      setAccent(a);
-      setSuccess(s);
-      setHexInputs({ primary: p, accent: a, success: s });
-      setTextOnPrimary(org.brand_text_on_primary ?? DEFAULT_BRAND.textOnPrimary);
-      setOrgDisplayName(org.org_display_name ?? "");
-      setWhiteLabel(org.white_label_enabled ?? false);
-      setLogoUrl(org.brand_logo_url ?? null);
+      const { data: brandKit } = await supabase
+        .from("brand_kits")
+        .select("brand_primary, brand_accent, brand_success, brand_text, logo_url, org_display_name, remove_candela_footer")
+        .eq("org_id", orgUser.org_id)
+        .single();
+
+      if (brandKit) {
+        const p = brandKit.brand_primary ?? DEFAULT_BRAND.primary;
+        const a = brandKit.brand_accent ?? DEFAULT_BRAND.accent;
+        const s = brandKit.brand_success ?? DEFAULT_BRAND.success;
+        setPrimary(p);
+        setAccent(a);
+        setSuccess(s);
+        setHexInputs({ primary: p, accent: a, success: s });
+        setTextOnPrimary(brandKit.brand_text ?? DEFAULT_BRAND.textOnPrimary);
+        setOrgDisplayName(brandKit.org_display_name ?? "");
+        setWhiteLabel(brandKit.remove_candela_footer ?? false);
+        setLogoUrl(brandKit.logo_url ?? null);
+      }
       setLoading(false);
     }
     load();
@@ -94,7 +102,7 @@ export default function BrandKitPage() {
     if (nameTimerRef.current) clearTimeout(nameTimerRef.current);
     nameTimerRef.current = setTimeout(async () => {
       if (!orgId) return;
-      await supabase.from("orgs").update({ org_display_name: value }).eq("id", orgId);
+      await supabase.from("brand_kits").update({ org_display_name: value }).eq("org_id", orgId);
     }, 500);
   }, [orgId, supabase]);
 
@@ -173,15 +181,26 @@ export default function BrandKitPage() {
         finalLogoUrl = publicUrl;
       }
 
-      const { error } = await supabase.from("orgs").update({
+      const brandPayload = {
         brand_primary: primary,
         brand_accent: accent,
         brand_success: success,
-        brand_text_on_primary: textOnPrimary,
-        brand_logo_url: finalLogoUrl,
+        brand_text: textOnPrimary,
+        logo_url: finalLogoUrl,
         org_display_name: orgDisplayName,
-        white_label_enabled: whiteLabel,
-      }).eq("id", orgId);
+        remove_candela_footer: whiteLabel,
+      };
+
+      // Check if a brand_kits row exists for this org
+      const { data: existing } = await supabase
+        .from("brand_kits")
+        .select("id")
+        .eq("org_id", orgId)
+        .single();
+
+      const { error } = existing
+        ? await supabase.from("brand_kits").update(brandPayload).eq("org_id", orgId)
+        : await supabase.from("brand_kits").insert({ org_id: orgId, ...brandPayload });
 
       if (error) throw error;
 
