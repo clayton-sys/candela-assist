@@ -16,12 +16,8 @@ export async function POST(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const { error } = await adminClient.auth.admin.generateLink({
-    type: "recovery",
-    email,
-    options: {
-      redirectTo: "https://candela.education/auth/callback",
-    },
+  const { error } = await adminClient.auth.resetPasswordForEmail(email, {
+    redirectTo: "https://candela.education/auth/callback",
   });
 
   if (error) {
