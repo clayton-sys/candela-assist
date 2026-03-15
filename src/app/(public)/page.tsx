@@ -916,7 +916,7 @@ export default function HomePage() {
                 {[
                   "Everything in Starter",
                   "Brand kit",
-                  "Funder Command Center",
+                  "Impact Command Center",
                   "200 AI generations/mo",
                   "5 users",
                 ].map((f) => (

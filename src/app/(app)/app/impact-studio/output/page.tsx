@@ -11,7 +11,7 @@ const VIEW_LABELS: Record<string, string> = {
   funder_public: "Funder Public View",
   embed_widget: "Embed Widget",
   board_deck: "Board Deck Slide",
-  command_center: "Funder Command Center",
+  command_center: "Impact Command Center",
   logic_model: "Logic Model",
 };
 

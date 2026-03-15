@@ -50,7 +50,7 @@ Make it compelling for funders and stakeholders.`,
 - Font: Cormorant Garamond for headings, DM Sans for body
 - Professional and executive-appropriate`,
 
-  command_center: `You are generating a self-contained, single HTML file for the Funder Command Center view. This is the flagship interactive presentation view for live funder meetings. It must be visually stunning and fully interactive.
+  command_center: `You are generating a self-contained, single HTML file for the Impact Command Center view. This is the flagship interactive presentation view for live funder meetings. It must be visually stunning and fully interactive.
 
 DESIGN REQUIREMENTS - follow exactly:
 

@@ -71,7 +71,7 @@ const VIEW_OPTIONS = [
   },
   {
     type: "command_center",
-    label: "Funder Command Center",
+    label: "Impact Command Center",
     description: "Interactive SVG constellation with clickable metric nodes",
     icon: Compass,
   },

@@ -16,7 +16,7 @@ const FEATURES = [
   { name: "Candela Assist", starter: "✓", growth: "✓", pro: "✓" },
   { name: "Grant Suite", starter: "Basic", growth: "Full", pro: "Full" },
   { name: "Brand kit", starter: "—", growth: "✓", pro: "✓" },
-  { name: "Funder Command Center", starter: "—", growth: "✓", pro: "✓" },
+  { name: "Impact Command Center", starter: "—", growth: "✓", pro: "✓" },
   { name: "White-label", starter: "—", growth: "—", pro: "✓" },
   { name: "AI generations/mo", starter: "50", growth: "200", pro: "Unlimited" },
   { name: "Users", starter: "1", growth: "5", pro: "20" },
@@ -271,7 +271,7 @@ export default function PricingPage() {
                 {[
                   "Everything in Starter",
                   "Brand kit",
-                  "Funder Command Center",
+                  "Impact Command Center",
                   "200 AI generations/mo",
                   "5 users",
                 ].map((f) => (
