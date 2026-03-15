@@ -63,7 +63,7 @@ export default function EditProgramDataPage() {
         }
 
         setPeriodLabel(data.period_label ?? "");
-        const prog = data.program as { name: string } | null;
+        const prog = data.program as unknown as { name: string } | null;
         setProgramName(prog?.name ?? null);
         setTags({
           outcomes: data.outcomes ?? null,

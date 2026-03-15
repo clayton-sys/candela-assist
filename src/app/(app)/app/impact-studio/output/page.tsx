@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useGrantsWizard } from "../context/GrantsWizardContext";
 import { createClient } from "@/lib/supabase/client";
-import { Save, Download, Send } from "lucide-react";
+import { Save, Download, Send, Check } from "lucide-react";
 
 const VIEW_LABELS: Record<string, string> = {
   staff_dashboard: "Staff Dashboard",
@@ -17,7 +17,7 @@ const VIEW_LABELS: Record<string, string> = {
 
 export default function OutputPage() {
   const router = useRouter();
-  const { runId, setRunId, setProjectId, selectedViews } = useGrantsWizard();
+  const { runId, setRunId, projectId, setProjectId, selectedViews } = useGrantsWizard();
   const [outputs, setOutputs] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<string>("");
   const [editInstruction, setEditInstruction] = useState("");
@@ -295,6 +295,20 @@ export default function OutputPage() {
           >
             <Download className="w-4 h-4" />
             Export
+          </button>
+          <button
+            onClick={() => {
+              if (projectId) {
+                router.push(`/app/impact-studio/projects/${projectId}`);
+              } else {
+                router.push("/app/impact-studio");
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-[#E9C03A] text-[#1B2B3A] rounded-lg text-sm font-medium hover:brightness-105 transition-all"
+            style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
+          >
+            <Check className="w-4 h-4" />
+            Done
           </button>
           {saveError && (
             <span className="text-xs text-red-500" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>

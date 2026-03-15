@@ -104,7 +104,7 @@ export default function AppSidebar({
       {/* New Project button */}
       <div className="px-3 pt-4 pb-2">
         <Link
-          href="/app/impact-studio/input"
+          href="/app/impact-studio?new=1"
           onClick={onNavClick}
           className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-lg bg-[#E9C03A] text-[#1B2B3A] text-sm font-semibold hover:bg-[#E9C03A]/90 transition-colors"
         >

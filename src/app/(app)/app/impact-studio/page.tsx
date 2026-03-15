@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useGrantsWizard } from "./context/GrantsWizardContext";
 import {
@@ -32,7 +32,9 @@ const STATUS_ORDER: Record<string, number> = {
 
 export default function WorkspacePage() {
   const router = useRouter();
-  const { setProjectId, setRunId, reset } = useGrantsWizard();
+  const searchParams = useSearchParams();
+  // GrantsWizard context available via layout
+  useGrantsWizard();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewModal, setShowNewModal] = useState(false);
@@ -121,7 +123,7 @@ export default function WorkspacePage() {
       const { data: projectsData } = await supabase
         .from("projects")
         .select(
-          "id, name, org_id, program_id, funder_name, project_type, status, blocking_message, period_label, created_by, created_at, updated_at"
+          "id, name, org_id, program_id, project_type, status, blocking_message, created_by, created_at, updated_at"
         )
         .eq("org_id", orgUser.org_id)
         .order("updated_at", { ascending: false });
@@ -165,38 +167,19 @@ export default function WorkspacePage() {
         });
       }
 
-      // Fetch user display names for created_by
-      const creatorIds = Array.from(
-        new Set(
-          projectsData.map((p) => p.created_by).filter(Boolean) as string[]
-        )
-      );
-      let creatorMap = new Map<string, string>();
-      if (creatorIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, display_name")
-          .in("id", creatorIds);
-        (profiles ?? []).forEach((p) =>
-          creatorMap.set(p.id, p.display_name ?? "")
-        );
-      }
-
       const enriched: Project[] = projectsData.map((p) => ({
         id: p.id,
         name: p.name,
         org_id: p.org_id,
         program_id: p.program_id ?? null,
         program_name: p.program_id ? programMap.get(p.program_id) ?? null : null,
-        funder_name: p.funder_name ?? null,
+        funder_name: null,
         project_type: p.project_type ?? "output_generator",
         status: p.status ?? "in_progress",
         blocking_message: p.blocking_message ?? null,
-        period_label: p.period_label ?? null,
+        period_label: null,
         created_by: p.created_by ?? null,
-        created_by_name: p.created_by
-          ? creatorMap.get(p.created_by) ?? null
-          : null,
+        created_by_name: null,
         created_at: p.created_at,
         updated_at: p.updated_at,
         view_count: viewCountMap.get(p.id) ?? 0,
@@ -213,6 +196,14 @@ export default function WorkspacePage() {
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
+
+  // Auto-open modal from sidebar "New Project" button via ?new=1
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      setShowNewModal(true);
+      router.replace("/app/impact-studio", { scroll: false });
+    }
+  }, [searchParams, router]);
 
   // Derived data
   const allPrograms = useMemo(() => {
@@ -287,9 +278,7 @@ export default function WorkspacePage() {
   }, [activeProjects]);
 
   function handleProjectClick(project: Project) {
-    reset();
-    setProjectId(project.id);
-    router.push("/app/impact-studio/input");
+    router.push(`/app/impact-studio/projects/${project.id}`);
   }
 
   function handleViewStripClick(project: Project) {
