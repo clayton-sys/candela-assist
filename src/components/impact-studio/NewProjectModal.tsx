@@ -101,15 +101,33 @@ const INTERACTIVE_VIEWS: {
   },
 ];
 
+// Map wizard view types to the API's view type keys
+const WIZARD_TO_API_VIEW: Record<string, string> = {
+  funder_report: "funder_public",
+  board_deck: "board_deck",
+  grant_narrative: "funder_public",
+  impact_command_center: "command_center",
+  impact_journey: "command_center",
+  staff_dashboard: "staff_dashboard",
+  orbit_view: "command_center",
+};
+
 interface NewProjectModalProps {
   onClose: () => void;
   onCreated: () => void;
+  existingProjectId?: string;
+  existingProjectName?: string;
+  existingRunCount?: number;
 }
 
 export default function NewProjectModal({
   onClose,
   onCreated,
+  existingProjectId,
+  existingProjectName,
+  existingRunCount,
 }: NewProjectModalProps) {
+  const isNewRun = !!existingProjectId;
   const router = useRouter();
 
   // Step 1 fields
@@ -149,7 +167,9 @@ export default function NewProjectModal({
   const totalSteps = isNarrative ? 4 : 3;
 
   // Current step: 1=Details, 2=ViewType, 3=Style(narrative)/Data(interactive), 4=Data(narrative)
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(isNewRun ? 2 : 1);
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
 
   // The data step number depends on path
   const dataStep = isNarrative ? 4 : 3;
@@ -337,9 +357,13 @@ export default function NewProjectModal({
       orgId,
       userId,
       selectedDataIds,
+      isNewRun,
+      existingProjectId,
     });
     if (creating) return;
     setCreating(true);
+    setGenerating(false);
+    setGenerateError(null);
 
     try {
       const supabase = createClient();
@@ -352,53 +376,69 @@ export default function NewProjectModal({
         return;
       }
 
-      // Create program if needed
-      let finalProgramId = programId === "org-wide" ? null : programId;
+      let projectId: string;
 
-      if (showNewProgramInput && newProgramName.trim()) {
-        const { data: newProgram, error: progError } = await supabase
-          .from("programs")
+      if (isNewRun && existingProjectId) {
+        // New run on existing project — skip project creation
+        projectId = existingProjectId;
+
+        // Clear is_latest on previous runs
+        await supabase
+          .from("project_runs")
+          .update({ is_latest: false })
+          .eq("project_id", projectId);
+      } else {
+        // Create program if needed
+        let finalProgramId = programId === "org-wide" ? null : programId;
+
+        if (showNewProgramInput && newProgramName.trim()) {
+          const { data: newProgram, error: progError } = await supabase
+            .from("programs")
+            .insert({
+              org_id: orgId,
+              name: newProgramName.trim(),
+            })
+            .select("id")
+            .single();
+
+          if (progError) {
+            console.error("Failed to create program:", progError);
+          }
+          if (newProgram) {
+            finalProgramId = newProgram.id;
+          }
+        }
+
+        // Create project
+        const { data: project, error: projectError } = await supabase
+          .from("projects")
           .insert({
             org_id: orgId,
-            name: newProgramName.trim(),
+            name: projectName.trim(),
+            program_id: finalProgramId,
+            project_type: VIEW_TYPE_TO_PROJECT_TYPE[selectedMode!],
+            status: "in_progress",
+            created_by: userId,
           })
           .select("id")
           .single();
 
-        if (progError) {
-          console.error("Failed to create program:", progError);
+        if (projectError || !project) {
+          console.error("Failed to create project:", projectError);
+          setCreating(false);
+          return;
         }
-        if (newProgram) {
-          finalProgramId = newProgram.id;
-        }
+
+        projectId = project.id;
       }
 
-      // Create project
-      const { data: project, error: projectError } = await supabase
-        .from("projects")
-        .insert({
-          org_id: orgId,
-          name: projectName.trim(),
-          program_id: finalProgramId,
-          project_type: VIEW_TYPE_TO_PROJECT_TYPE[selectedMode!],
-          status: "in_progress",
-          created_by: userId,
-        })
-        .select("id")
-        .single();
-
-      if (projectError || !project) {
-        console.error("Failed to create project:", projectError);
-        setCreating(false);
-        return;
-      }
-
-      // Create initial project_run
+      // Create project_run
+      const versionNumber = isNewRun ? (existingRunCount ?? 0) + 1 : 1;
       const { data: run, error: runError } = await supabase
         .from("project_runs")
         .insert({
-          project_id: project.id,
-          version_number: 1,
+          project_id: projectId,
+          version_number: versionNumber,
           is_latest: true,
           period_label: periodLabel.trim() || null,
           selected_data_points: selectedDataIds,
@@ -413,16 +453,121 @@ export default function NewProjectModal({
         return;
       }
 
+      // --- Generation: fetch data, call API, save output ---
+      setGenerating(true);
+
+      // Fetch selected program_data rows
+      const { data: dataRows } = await supabase
+        .from("program_data")
+        .select(
+          "id, period_label, outcomes, quantitative_data, barriers, client_voice, change_description"
+        )
+        .in("id", selectedDataIds.length > 0 ? selectedDataIds : ["__none__"]);
+
+      // Transform program_data fields into DataPoint[] for the API
+      const dataPoints: {
+        id: string;
+        label: string;
+        value: string;
+        category: string;
+      }[] = [];
+      for (const row of dataRows ?? []) {
+        const prefix = row.period_label || "Entry";
+        if (row.outcomes)
+          dataPoints.push({
+            id: `${row.id}-outcomes`,
+            label: `${prefix} — Outcomes`,
+            value: row.outcomes,
+            category: "outcomes",
+          });
+        if (row.quantitative_data)
+          dataPoints.push({
+            id: `${row.id}-quant`,
+            label: `${prefix} — Quantitative Data`,
+            value: row.quantitative_data,
+            category: "volume",
+          });
+        if (row.barriers)
+          dataPoints.push({
+            id: `${row.id}-barriers`,
+            label: `${prefix} — Barriers`,
+            value: row.barriers,
+            category: "outcomes",
+          });
+        if (row.client_voice)
+          dataPoints.push({
+            id: `${row.id}-voice`,
+            label: `${prefix} — Client Voice`,
+            value: row.client_voice,
+            category: "outcomes",
+          });
+        if (row.change_description)
+          dataPoints.push({
+            id: `${row.id}-change`,
+            label: `${prefix} — Change Description`,
+            value: row.change_description,
+            category: "outcomes",
+          });
+      }
+
+      // Map wizard view type to API view type
+      const apiViewType =
+        WIZARD_TO_API_VIEW[selectedViewType ?? ""] ?? "funder_public";
+
+      // Call generate API
+      const res = await fetch("/api/impact/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dataPoints,
+          selectedViews: [apiViewType],
+          theme: selectedThemeId,
+          layout: "constellation",
+        }),
+      });
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        console.error("Generation API error:", errBody);
+        setGenerateError(
+          errBody.error ?? "Generation failed. Please try again."
+        );
+        setGenerating(false);
+        setCreating(false);
+        return;
+      }
+
+      const genData = await res.json();
+      const outputHtml =
+        genData.outputs?.[apiViewType] ?? Object.values(genData.outputs ?? {})[0] ?? null;
+
+      if (outputHtml) {
+        // Save to generated_views
+        const { error: viewError } = await supabase
+          .from("generated_views")
+          .insert({
+            run_id: run.id,
+            view_type: selectedViewType ?? apiViewType,
+            output_html: outputHtml,
+          });
+
+        if (viewError) {
+          console.error("Failed to save generated view:", viewError);
+        }
+      }
+
       console.log(
-        "[NewProjectModal] Project created successfully:",
-        project.id
+        "[NewProjectModal] Project + generation complete:",
+        projectId
       );
       onCreated();
       onClose();
-      router.push(`/app/impact-studio/projects/${project.id}`);
+      router.push(`/app/impact-studio/projects/${projectId}`);
     } catch (err) {
       console.error("Error creating project:", err);
+      setGenerateError("An unexpected error occurred.");
       setCreating(false);
+      setGenerating(false);
     }
   }
 
@@ -436,13 +581,16 @@ export default function NewProjectModal({
               className="text-xl font-semibold text-[#1B2B3A]"
               style={cormorant}
             >
-              New Project
+              {isNewRun ? "New Run" : "New Project"}
             </h2>
             <p
               className="text-xs text-[#1B2B3A]/40 mt-0.5"
               style={dmSans}
             >
-              Step {step} of {totalSteps} &mdash; {getStepLabel(step)}
+              {isNewRun
+                ? `Step ${step - 1} of ${totalSteps - 1}`
+                : `Step ${step} of ${totalSteps}`}{" "}
+              &mdash; {getStepLabel(step)}
             </p>
           </div>
           <button
@@ -456,14 +604,19 @@ export default function NewProjectModal({
         {/* Step indicator */}
         <div className="px-6 pb-4 flex-shrink-0">
           <div className="flex gap-2">
-            {Array.from({ length: totalSteps }).map((_, i) => (
-              <div
-                key={i}
-                className={`h-1 flex-1 rounded-full transition-colors ${
-                  step >= i + 1 ? "bg-[#3A6B8A]" : "bg-[#1B2B3A]/10"
-                }`}
-              />
-            ))}
+            {Array.from({
+              length: isNewRun ? totalSteps - 1 : totalSteps,
+            }).map((_, i) => {
+              const stepNum = isNewRun ? i + 2 : i + 1;
+              return (
+                <div
+                  key={i}
+                  className={`h-1 flex-1 rounded-full transition-colors ${
+                    step >= stepNum ? "bg-[#3A6B8A]" : "bg-[#1B2B3A]/10"
+                  }`}
+                />
+              );
+            })}
           </div>
         </div>
 
@@ -954,6 +1107,16 @@ export default function NewProjectModal({
                 )}
               </div>
 
+              {/* Generation error */}
+              {generateError && (
+                <div
+                  className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-700"
+                  style={dmSans}
+                >
+                  {generateError}
+                </div>
+              )}
+
               {/* Data step footer */}
               <div className="flex justify-between mt-6">
                 <button
@@ -974,7 +1137,13 @@ export default function NewProjectModal({
                   style={dmSans}
                 >
                   {creating && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Create Project
+                  {generating
+                    ? "Generating..."
+                    : creating
+                    ? "Creating..."
+                    : isNewRun
+                    ? "Generate New Run"
+                    : "Create & Generate"}
                 </button>
               </div>
             </div>

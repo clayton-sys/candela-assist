@@ -58,28 +58,24 @@ export default async function ProjectDetailPage({
 
   // Fetch generated_views for latest run
   let outputHtml: string | null = null;
-  let outputData: unknown = null;
   let viewType: string | null = null;
 
   if (latestRun) {
     const { data: view } = await supabase
       .from("generated_views")
-      .select("output_html, output_data, view_type")
+      .select("output_html, view_type")
       .eq("run_id", latestRun.id)
       .limit(1)
       .single();
 
     if (view) {
       outputHtml = view.output_html ?? null;
-      outputData = view.output_data ?? null;
       viewType = view.view_type ?? null;
     }
   }
 
   // Branch: Mode 1 (narrative/document) vs Mode 2 (interactive)
-  const isMode2 =
-    project.project_type === "output_generator" ||
-    (outputData !== null && outputHtml === null);
+  const isMode2 = project.project_type === "output_generator";
 
   if (isMode2) {
     return (
@@ -92,7 +88,7 @@ export default async function ProjectDetailPage({
           created_at: r.created_at,
         }))}
         viewType={viewType}
-        outputData={outputData}
+        outputData={null}
       />
     );
   }
