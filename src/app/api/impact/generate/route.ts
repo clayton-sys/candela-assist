@@ -40,11 +40,11 @@ const DEFAULT_BRAND: BrandKit = {
 function buildBrandDirective(b: BrandKit): string {
   const orgName = b.org_display_name || "the organization";
   const lines = [
-    `BRAND OVERRIDES — use these instead of any default colors:`,
-    `- Primary / background: ${b.brand_primary}`,
-    `- Accent / highlight: ${b.brand_accent}`,
-    `- Success / on-track: ${b.brand_success}`,
-    `- Text on primary: ${b.brand_text}`,
+    `BRAND COLORS — Use these brand colors throughout the output. The VISUAL THEME block below defines how and where each color is applied.`,
+    `- Brand primary: ${b.brand_primary}`,
+    `- Brand accent: ${b.brand_accent}`,
+    `- Brand success: ${b.brand_success}`,
+    `- Brand neutral: ${b.brand_text}`,
     `- Organization name: ${orgName}`,
   ];
   if (b.logo_url) {
