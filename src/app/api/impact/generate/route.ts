@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/ratelimit";
+import { getThemeInstructions } from "@/lib/themes";
 
 export const dynamic = "force-dynamic";
 
@@ -253,10 +254,9 @@ export async function POST(req: NextRequest) {
       .map((dp) => `- ${dp.label}: ${dp.value} (${dp.category})`)
       .join("\n");
 
-    // Resolve theme/layout for system prompt
-    const activeTheme = theme || "candela_classic";
-    const activeLayout = layout || "constellation";
-    const themeDirective = `Use the '${activeTheme}' theme with '${activeLayout}' layout. Adapt the visual style accordingly.`;
+    // Resolve theme instructions
+    const activeTheme = theme || "candela-classic";
+    const themeInstructions = getThemeInstructions(activeTheme);
 
     // Generate each view in parallel
     const results = await Promise.all(
@@ -264,15 +264,17 @@ export async function POST(req: NextRequest) {
         const prompt = prompts[viewType];
         if (!prompt) return { viewType, html: `<p>Unknown view type: ${viewType}</p>` };
 
+        const themeBlock = `\n\n--- VISUAL THEME ---\n${themeInstructions}\n\nApply this visual theme when generating the HTML. The theme defines layout structure, typography weight, color usage, and visual density. The Brand Kit colors (provided above) are always used — the theme defines HOW they are used.`;
+
         const message = await client.messages.create({
           model: "claude-sonnet-4-20250514",
           max_tokens: viewType === "command_center" ? 16384 : 8192,
           system:
-            `You are an expert HTML/CSS designer for nonprofit reporting tools. ${themeDirective}\n\n${brandDirective}\n\nReturn ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html> or <div>.`,
+            `You are an expert HTML/CSS designer for nonprofit reporting tools.\n\n${brandDirective}\n\nReturn ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html> or <div>.`,
           messages: [
             {
               role: "user",
-              content: `${prompt}\n\nData Points:\n${dataContext}`,
+              content: `${prompt}\n\nData Points:\n${dataContext}${themeBlock}`,
             },
           ],
         });
