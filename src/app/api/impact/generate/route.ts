@@ -236,10 +236,11 @@ export async function POST(req: NextRequest) {
 
     // Parse body
     const body = await req.json();
-    const { dataPoints, selectedViews, theme, layout } = body as {
+    const { dataPoints, selectedViews, theme, theme_id, layout } = body as {
       dataPoints: DataPoint[];
       selectedViews: string[];
       theme?: string;
+      theme_id?: string;
       layout?: string;
     };
 
@@ -255,8 +256,7 @@ export async function POST(req: NextRequest) {
       .join("\n");
 
     // Resolve theme instructions
-    const activeTheme = theme || "candela-classic";
-    const themeInstructions = getThemeInstructions(activeTheme);
+    const themeInstructions = getThemeInstructions(theme_id ?? theme ?? "candela-classic");
 
     // Generate each view in parallel
     const results = await Promise.all(
