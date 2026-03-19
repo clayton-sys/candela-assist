@@ -43,12 +43,17 @@ function buildColorDirective(
   b: BrandKit
 ): string {
   const lines = [
-    `COLOR PALETTE — use these colors for all styling:`,
+    `COLOR PALETTE — use these colors for all styling. The theme above defines HOW they are applied:`,
     `- Primary / background: ${primary}`,
     `- Accent / highlight: ${accent}`,
     `- Success / on-track: ${b.brand_success}`,
     `- Text on primary: ${b.brand_text}`,
   ];
+  return lines.join("\n");
+}
+
+function buildIdentityDirective(b: BrandKit): string {
+  const lines: string[] = [];
   if (b.org_display_name) {
     lines.push(`- Organization name (use ONLY in footer or attribution, never as a view title): ${b.org_display_name}`);
   }
@@ -63,87 +68,78 @@ function buildColorDirective(
   } else {
     lines.push(`- Include 'Powered by Candela · candela.education' in the footer.`);
   }
+  lines.push(`- View title must describe the content, never the org name.`);
   return lines.join("\n");
 }
 
-function viewPrompts(
-  primary: string,
-  accent: string,
-  b: BrandKit
-): Record<string, string> {
-  const success = b.brand_success;
-  const text = b.brand_text;
-  const footerLine = b.remove_candela_footer
-    ? ""
-    : `- Include 'Powered by Candela · candela.education' in the footer`;
-  const logoLine = b.logo_url
-    ? `- Display the org logo in the header badge: <img src="${b.logo_url}" alt="org logo" style="max-height:36px">`
-    : "";
-
+function viewPrompts(): Record<string, string> {
   return {
-    staff_dashboard: `Generate a complete HTML document for a Staff Dashboard. Use a dense operational layout with:
-- ${accent} progress bars
+    staff_dashboard: `Generate a complete HTML document for a Staff Dashboard.
+
+Required sections:
 - KPI cards in a grid layout with large numbers
+- Progress bars for key metrics
 - An AI insight panel at the bottom with key takeaways
-- Use ${primary} for headers, ${text} for backgrounds
-- Font: DM Sans for body text, Cormorant Garamond for headings
-${logoLine}
-${footerLine}
-Make it data-rich and operational. Include all provided data points.`,
+- Header with org logo badge and a descriptive dashboard title (not the org name)
+- Footer with org logo and 'Powered by Candela · candela.education'
 
-    funder_public: `Generate a complete HTML document for a Funder Public View. Use:
-- Dark ${primary} background throughout
-- Outcome cards with ${text} text
-- A theory of change narrative section
-- Editorial, magazine-style feel with generous whitespace
-- ${accent} accents for highlights and dividers
-- Font: Cormorant Garamond for headings, DM Sans for body
-- The view title should describe the content (e.g. "Impact Report" or the program name), NOT the org name
-${logoLine}
-${footerLine}
-Make it compelling for funders and stakeholders.`,
+Audience: program staff and managers. Make it data-rich and operational.
+Font: Cormorant Garamond for headings, DM Sans for body.
+Include all provided data points.`,
 
-    embed_widget: `Generate a complete HTML document for a compact Website Embed Widget. Requirements:
+    funder_public: `Generate a complete HTML document for a Funder Narrative Report.
+
+Required sections:
+- Header with org logo badge and a descriptive report title (not the org name)
+- Program outcome narrative section
+- Quantitative metrics display
+- Client voice / employer/partner quotes section
+- Barriers and context section
+- What changed / forward-looking section
+- Footer with org logo and 'Powered by Candela · candela.education'
+
+Audience: funders and community stakeholders. Make it compelling and credible.
+Font: Cormorant Garamond for headings, DM Sans for body.`,
+
+    embed_widget: `Generate a complete HTML document for a compact Website Embed Widget.
+
+Required sections:
 - Max width 400px, self-contained
-- Show top 3 metrics prominently
-- Include a ${accent} progress bar
-- Branded footer with ${success} accent
-- ${primary} header area
-- Font: DM Sans throughout
-- Clean, minimal design suitable for embedding in any website
-${footerLine}`,
+- Top 3 metrics displayed prominently
+- Progress bar for a key metric
+- Branded footer
 
-    board_deck: `Generate a complete HTML document for a Board Deck Slide. Requirements:
+Audience: website visitors. Clean and minimal, suitable for embedding in any website.
+Font: DM Sans throughout.`,
+
+    board_deck: `Generate a complete HTML document for a Board Deck Slide.
+
+Required sections:
 - Single-page, print-ready layout (landscape feel)
 - Key metrics in large, scannable format
 - AI-generated talking points panel on the right side
-- Clean grid layout with ${primary} headers
-- ${accent} accent elements
-- Font: Cormorant Garamond for headings, DM Sans for body
-- Professional and executive-appropriate
-- The view title should describe the content (e.g. "Board Report" or the program name), NOT the org name
-${logoLine}
-${footerLine}`,
+- Header with org logo badge and a descriptive title (not the org name)
+- Footer with org logo and 'Powered by Candela · candela.education'
 
-    command_center: `You are generating a self-contained, single HTML file for the Impact Command Center view. This is the flagship interactive presentation view for live funder meetings. It must be visually stunning and fully interactive.
+Audience: board members and executives. Professional and executive-appropriate.
+Font: Cormorant Garamond for headings, DM Sans for body.`,
 
-DESIGN REQUIREMENTS - follow exactly:
+    command_center: `You are generating a self-contained, single HTML file for the Impact Command Center view. This is the flagship interactive presentation view for live funder meetings. It must be fully interactive.
 
 LAYOUT:
-- Full dark canvas background: ${primary}
+- Full dark canvas background
 - Header bar: program name (left or center), green pulsing LIVE dot + period selector dropdown (right), Story Mode button (top right)
 - If org logo is provided, display as a small badge in the header
-${logoLine ? `- ${logoLine.replace("- ", "")}` : ""}
 - Main area: SVG constellation web centered on screen
-- Footer: 'Click any node to explore · Story Mode for guided presentation' (left)${b.remove_candela_footer ? "" : `, 'Powered by Candela · candela.education' (right)`}
+- Footer: 'Click any node to explore · Story Mode for guided presentation' (left), 'Powered by Candela · candela.education' (right)
 
 CONSTELLATION WEB:
-- 1 large central hub node (120px diameter) in ${accent} showing the most impactful cumulative number (total participants, lives changed, etc.) with label${b.custom_center_text ? ` '${b.custom_center_text}'` : ` 'LIVES CHANGED' or equivalent`}
+- 1 large central hub node (120px diameter) showing the most impactful cumulative number (total participants, lives changed, etc.) with label
 - 8 outer metric nodes (80px diameter) arranged in a circle around the hub, evenly spaced
-- Each outer node shows: metric value (large, bold, DM Sans), metric label (small, Cormorant Garamond)
+- Each outer node shows: metric value (large, bold) and metric label (small)
 - Animated dashed lines connecting each outer node to the center hub - use CSS animation to make them pulse
 - Node ring: each node has a circular progress arc (SVG stroke-dasharray) showing progress toward target. Full ring = at/above target.
-- Node colors: ${success} = on track, ${accent} = watch/monitor, #E05A2B = at risk
+- Status-based node coloring: on track, watch/monitor, at risk
 - All nodes pulse with a subtle glow animation on load
 
 INTERACTIONS - every function MUST be defined in the script block:
@@ -166,28 +162,19 @@ PERIOD SELECTOR:
 TYPOGRAPHY:
 - Headings and node labels: Cormorant Garamond (import from Google Fonts)
 - Values, body, UI elements: DM Sans (import from Google Fonts)
-- Node values: 28px bold white
-- Node labels: 11px uppercase letter-spaced, ${text}
-
-COLORS - use ONLY these:
-- ${primary} (background)
-- ${accent} (hub, highlights, Story Mode button)
-- ${text} (secondary text)
-- ${success} (on-track nodes, lines)
-- #E05A2B (at-risk nodes)
-- White (#FFFFFF) for primary values
 
 Generate the complete HTML file with all CSS in a <style> block and all JavaScript in a single <script> block at the end. Every onclick/onchange handler referenced in the HTML MUST have a corresponding function defined in the script block.`,
 
-    logic_model: `Generate a complete HTML document for a Logic Model table. Requirements:
+    logic_model: `Generate a complete HTML document for a Logic Model table.
+
+Required sections:
 - Standard 5-column table: Inputs → Activities → Outputs → Outcomes → Impact
 - Derive content from the data points provided, mapping them to appropriate columns
-- Use ${primary} column headers
-- Alternating subtle row backgrounds using ${text}
-- ${accent} arrow connectors between columns
-- Font: DM Sans throughout
-- Clean, professional, suitable for grant applications
-${footerLine}`,
+- Arrow connectors between columns
+- Footer with 'Powered by Candela · candela.education'
+
+Audience: grant reviewers. Clean, professional, suitable for grant applications.
+Font: DM Sans throughout.`,
   };
 }
 
@@ -263,7 +250,8 @@ export async function POST(req: NextRequest) {
     const accent = resolvedAccent ?? brand.brand_accent;
 
     const colorDirective = buildColorDirective(primary, accent, brand);
-    const prompts = viewPrompts(primary, accent, brand);
+    const identityDirective = buildIdentityDirective(brand);
+    const prompts = viewPrompts();
 
     if (!dataPoints?.length || !selectedViews?.length) {
       return NextResponse.json(
@@ -285,28 +273,20 @@ export async function POST(req: NextRequest) {
         const prompt = prompts[viewType];
         if (!prompt) return { viewType, html: `<p>Unknown view type: ${viewType}</p>` };
 
-        const themeBlock = `\n\n--- VISUAL THEME ---\n${themeInstructions}\n\nApply this visual theme when generating the HTML. The theme defines layout structure, typography weight, color usage, and visual density. The Brand Kit colors (provided above) are always used — the theme defines HOW they are used.`;
+        const systemPrompt = [
+          `You are an expert HTML/CSS designer for nonprofit impact reporting.`,
+          ``,
+          `VISUAL THEME — this governs all layout, typography, section transitions, and visual density. It is not a suggestion. Every structural and aesthetic decision must express this theme:\n${themeInstructions}`,
+          ``,
+          colorDirective,
+          ``,
+          identityDirective,
+          ``,
+          `Return ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html>.`,
+        ].join("\n");
+        const userPrompt = `${prompt}\n\nData Points:\n${dataContext}`;
 
-        const systemPrompt = `You are an expert HTML/CSS designer for nonprofit reporting tools.\n\n${colorDirective}\n\nIMPORTANT: The view title and headings should describe the content or program — never use the organization name as the view title.\n\nReturn ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html> or <div>.`;
-        const userPrompt = `${prompt}\n\nData Points:\n${dataContext}${themeBlock}`;
-
-        console.log('=== GENERATION PROMPT AUDIT ===');
-        console.log(`--- VIEW TYPE: ${viewType} ---`);
-        console.log('--- COLOR DIRECTIVE ---');
-        console.log(colorDirective);
-        console.log('--- VIEW PROMPT ---');
-        console.log(prompt);
-        console.log('--- THEME INSTRUCTIONS ---');
-        console.log(themeInstructions);
-        console.log('--- THEME BLOCK ---');
-        console.log(themeBlock);
-        console.log('--- DATA CONTEXT ---');
-        console.log(dataContext);
-        console.log('--- FULL SYSTEM PROMPT ---');
-        console.log(systemPrompt);
-        console.log('--- FULL USER PROMPT ---');
-        console.log(userPrompt);
-        console.log('=== END PROMPT AUDIT ===');
+        console.log('SYSTEM PROMPT:', systemPrompt);
 
         const message = await client.messages.create({
           model: "claude-sonnet-4-20250514",
