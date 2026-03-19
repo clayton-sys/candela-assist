@@ -980,7 +980,6 @@ export default function NewProjectModal({
               <ThemePicker
                 selectedThemeId={selectedThemeId}
                 orgPlan={orgPlan}
-                brandKit={brandKit}
                 onSelect={setSelectedThemeId}
               />
 

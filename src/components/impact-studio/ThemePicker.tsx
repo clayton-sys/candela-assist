@@ -2,17 +2,9 @@
 
 import ThemeCard from "./ThemeCard";
 
-interface BrandKit {
-  brand_primary: string;
-  brand_accent: string;
-  brand_success: string;
-  brand_text: string;
-}
-
 interface ThemePickerProps {
   selectedThemeId: string;
   orgPlan: string;
-  brandKit: BrandKit | null;
   onSelect: (themeId: string) => void;
 }
 
@@ -37,7 +29,6 @@ const THEMES = [
 export default function ThemePicker({
   selectedThemeId,
   orgPlan,
-  brandKit,
   onSelect,
 }: ThemePickerProps) {
   return (
@@ -54,7 +45,6 @@ export default function ThemePicker({
             spectrum={theme.spectrum}
             isSelected={selectedThemeId === theme.id}
             isLocked={isLocked}
-            brandKit={brandKit}
             onClick={() => onSelect(theme.id)}
           />
         );

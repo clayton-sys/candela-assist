@@ -1,6 +1,7 @@
 "use client";
 
 import { Lock } from "lucide-react";
+import { THEMES } from "@/lib/themes";
 
 interface ThemeCardProps {
   themeId: string;
@@ -8,12 +9,6 @@ interface ThemeCardProps {
   spectrum: string;
   isSelected: boolean;
   isLocked: boolean;
-  brandKit: {
-    brand_primary: string;
-    brand_accent: string;
-    brand_success: string;
-    brand_text: string;
-  } | null;
   onClick: () => void;
 }
 
@@ -143,9 +138,12 @@ export default function ThemeCard({
   spectrum,
   isSelected,
   isLocked,
-  brandKit,
   onClick,
 }: ThemeCardProps) {
+  const themeDef = THEMES[themeId];
+  const previewPrimary = themeDef?.previewPrimary ?? "#1B2B3A";
+  const previewAccent = themeDef?.previewAccent ?? "#E9C03A";
+
   return (
     <button
       type="button"
@@ -160,8 +158,8 @@ export default function ThemeCard({
       }`}
       style={
         {
-          "--tk-primary": brandKit?.brand_primary ?? "#1B2B3A",
-          "--tk-accent": brandKit?.brand_accent ?? "#E9C03A",
+          "--tk-primary": previewPrimary,
+          "--tk-accent": previewAccent,
         } as React.CSSProperties
       }
     >
