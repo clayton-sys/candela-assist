@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ChevronLeft, Download, Plus } from "lucide-react";
+import { ChevronLeft, Plus } from "lucide-react";
 import NewProjectModal from "@/components/impact-studio/NewProjectModal";
+import EditableViewFrame from "@/components/impact-studio/EditableViewFrame";
+import ExportDropdown from "@/components/impact-studio/ExportDropdown";
 
 interface Run {
   id: string;
@@ -23,6 +25,8 @@ interface ProjectDetailMode1Props {
   };
   runs: Run[];
   initialHtml: string | null;
+  initialContentMap: Record<string, string> | null;
+  initialViewId: string | null;
 }
 
 const VIEW_TYPE_LABELS: Record<string, string> = {
@@ -58,14 +62,22 @@ export default function ProjectDetailMode1({
   project,
   runs,
   initialHtml,
+  initialContentMap,
+  initialViewId,
 }: ProjectDetailMode1Props) {
   const router = useRouter();
   const [selectedHtml, setSelectedHtml] = useState<string | null>(initialHtml);
+  const [contentMap, setContentMap] = useState<Record<string, string> | null>(
+    initialContentMap
+  );
+  const [currentViewId, setCurrentViewId] = useState<string | null>(initialViewId);
   const [activeRunId, setActiveRunId] = useState<string | null>(
     runs[0]?.id ?? null
   );
-  const [toastVisible, setToastVisible] = useState(false);
   const [showNewRunModal, setShowNewRunModal] = useState(false);
+  const [saveToast, setSaveToast] = useState(false);
+
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   const statusCfg = STATUS_LABELS[project.status] ?? STATUS_LABELS.in_progress;
 
@@ -75,21 +87,53 @@ export default function ProjectDetailMode1({
       const supabase = createClient();
       const { data: view } = await supabase
         .from("generated_views")
-        .select("output_html")
+        .select("id, output_html, content_map")
         .eq("run_id", runId)
         .limit(1)
         .single();
 
       setSelectedHtml(view?.output_html ?? null);
+      setContentMap((view?.content_map as Record<string, string>) ?? null);
+      setCurrentViewId(view?.id ?? null);
     } catch (err) {
       console.error("Failed to fetch run output:", err);
     }
   }
 
-  function handleExport() {
-    setToastVisible(true);
-    setTimeout(() => setToastVisible(false), 2500);
-  }
+  const handleEditSave = useCallback(
+    async (newContentMap: Record<string, string>, updatedHtml: string) => {
+      setContentMap(newContentMap);
+      setSelectedHtml(updatedHtml);
+
+      if (!currentViewId) return;
+
+      try {
+        const supabase = createClient();
+        await supabase
+          .from("generated_views")
+          .update({
+            content_map: newContentMap,
+            output_html: updatedHtml,
+          })
+          .eq("id", currentViewId);
+
+        setSaveToast(true);
+        setTimeout(() => setSaveToast(false), 2000);
+      } catch (err) {
+        console.error("Failed to save edit:", err);
+      }
+    },
+    [currentViewId]
+  );
+
+  // Provide iframe element to ExportDropdown
+  const getIframeElement = useCallback((): HTMLIFrameElement | null => {
+    // Find the iframe inside EditableViewFrame
+    const container = document.querySelector('[data-view-frame]');
+    return container?.querySelector("iframe") ?? null;
+  }, []);
+
+  const getHtml = useCallback(() => selectedHtml, [selectedHtml]);
 
   const dmSans = { fontFamily: "'DM Sans', system-ui, sans-serif" } as const;
   const cormorant = {
@@ -112,14 +156,13 @@ export default function ProjectDetailMode1({
 
       {/* Two-column body */}
       <div className="flex gap-0 min-h-[calc(100vh-52px)]">
-        {/* LEFT — iframe */}
-        <div className="flex-1 p-6">
+        {/* LEFT — editable view frame */}
+        <div className="flex-1 p-6" data-view-frame>
           {selectedHtml ? (
-            <iframe
-              srcDoc={selectedHtml}
-              sandbox="allow-scripts allow-same-origin"
-              className="w-full h-full min-h-[600px] rounded-lg border border-[#1B2B3A]/20 bg-white"
-              title="Generated output"
+            <EditableViewFrame
+              html={selectedHtml}
+              contentMap={contentMap}
+              onSave={handleEditSave}
             />
           ) : (
             <div className="flex items-center justify-center h-full min-h-[400px] bg-white/50 rounded-lg border border-[#1B2B3A]/10">
@@ -156,15 +199,15 @@ export default function ProjectDetailMode1({
 
           <hr className="my-4 border-[#1B2B3A]/10" />
 
-          {/* Export button */}
-          <button
-            onClick={handleExport}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-[#1B2B3A]/15 rounded-lg text-sm text-[#1B2B3A]/60 hover:bg-[#1B2B3A]/5 transition-colors mb-2"
-            style={dmSans}
-          >
-            <Download className="w-4 h-4" />
-            Export
-          </button>
+          {/* Export dropdown */}
+          <div className="mb-2">
+            <ExportDropdown
+              projectName={project.name}
+              viewType={VIEW_TYPE_LABELS[project.project_type] ?? "view"}
+              getHtml={getHtml}
+              getIframeElement={getIframeElement}
+            />
+          </div>
 
           {/* New Run button */}
           <button
@@ -216,13 +259,23 @@ export default function ProjectDetailMode1({
               })}
             </div>
           )}
+
+          {/* Editing hint */}
+          {selectedHtml && (
+            <>
+              <hr className="my-4 border-[#1B2B3A]/10" />
+              <p className="text-[11px] text-[#1B2B3A]/30" style={dmSans}>
+                Click any text block in the view to edit it inline.
+              </p>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Toast */}
-      {toastVisible && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#1B2B3A] text-[#EDE8DE] px-4 py-2 rounded-lg text-sm shadow-lg z-50">
-          Export coming soon
+      {/* Save toast */}
+      {saveToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#1D9E75] text-white px-4 py-2 rounded-lg text-sm shadow-lg z-50">
+          Edit saved
         </div>
       )}
 
