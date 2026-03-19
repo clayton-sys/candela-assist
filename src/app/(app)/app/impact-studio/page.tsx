@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { useGrantsWizard } from "./context/GrantsWizardContext";
 import {
   Plus,
   LayoutGrid,
@@ -33,8 +32,6 @@ const STATUS_ORDER: Record<string, number> = {
 export default function WorkspacePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // GrantsWizard context available via layout
-  useGrantsWizard();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewModal, setShowNewModal] = useState(false);
