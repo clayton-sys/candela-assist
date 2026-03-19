@@ -12,7 +12,7 @@ import {
   Palette,
   Lock,
 } from "lucide-react";
-import ThemePicker from "./ThemePicker";
+import ThemePicker, { type ColorScheme } from "./ThemePicker";
 
 interface Program {
   id: string;
@@ -24,14 +24,6 @@ interface DataEntry {
   period_label: string | null;
   program: { id: string; name: string } | null;
   created_at: string;
-}
-
-interface BrandKit {
-  brand_primary: string;
-  brand_accent: string;
-  brand_success: string;
-  brand_text: string;
-  logo_url: string | null;
 }
 
 // Granular view types
@@ -151,7 +143,9 @@ export default function NewProjectModal({
 
   // Step 3 fields — theme picker (narrative only)
   const [selectedThemeId, setSelectedThemeId] = useState("candela-classic");
-  const [brandKit, setBrandKit] = useState<BrandKit | null>(null);
+  const [selectedColorScheme, setSelectedColorScheme] =
+    useState<ColorScheme>("default");
+  const [hasBrandKit, setHasBrandKit] = useState(false);
   const [orgPlan, setOrgPlan] = useState("starter");
 
   // Data step fields
@@ -230,26 +224,22 @@ export default function NewProjectModal({
     loadPrograms();
   }, []);
 
-  // Fetch brand kit when entering Step 2
+  // Check if brand kit exists and load org plan when entering Step 2
   useEffect(() => {
     if (step !== 2 || !orgId) return;
 
-    async function loadBrandKit() {
+    async function checkBrandKit() {
       try {
         const supabase = createClient();
         const { data } = await supabase
           .from("brand_kits")
-          .select(
-            "brand_primary, brand_accent, brand_success, brand_text, logo_url"
-          )
+          .select("id")
           .eq("org_id", orgId!)
           .single();
 
-        if (data) {
-          setBrandKit(data as BrandKit);
-        }
-      } catch (err) {
-        console.error("Failed to load brand kit:", err);
+        setHasBrandKit(!!data);
+      } catch {
+        setHasBrandKit(false);
       }
     }
 
@@ -267,7 +257,7 @@ export default function NewProjectModal({
       }
     }
 
-    loadBrandKit();
+    checkBrandKit();
     loadOrgPlan();
   }, [step, orgId]);
 
@@ -522,6 +512,7 @@ export default function NewProjectModal({
           dataPoints,
           selectedViews: [apiViewType],
           theme: selectedThemeId,
+          colorScheme: selectedColorScheme,
           layout: "constellation",
         }),
       });
@@ -979,9 +970,11 @@ export default function NewProjectModal({
 
               <ThemePicker
                 selectedThemeId={selectedThemeId}
+                selectedColorScheme={selectedColorScheme}
                 orgPlan={orgPlan}
-                brandKit={brandKit}
-                onSelect={setSelectedThemeId}
+                hasBrandKit={hasBrandKit}
+                onSelectTheme={setSelectedThemeId}
+                onSelectColorScheme={setSelectedColorScheme}
               />
 
               {/* Step 3 theme footer */}
