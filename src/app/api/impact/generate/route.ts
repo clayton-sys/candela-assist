@@ -37,21 +37,33 @@ const DEFAULT_BRAND: BrandKit = {
   remove_candela_footer: false,
 };
 
-function buildBrandDirective(b: BrandKit): string {
-  const orgName = b.org_display_name || "the organization";
-  const lines = [
-    `BRAND OVERRIDES — use these instead of any default colors:`,
-    `- Primary / background: ${b.brand_primary}`,
-    `- Accent / highlight: ${b.brand_accent}`,
-    `- Success / on-track: ${b.brand_success}`,
-    `- Text on primary: ${b.brand_text}`,
-    `- Organization name: ${orgName}`,
-  ];
+function buildBrandDirective(b: BrandKit, hasTheme: boolean): string {
+  const lines: string[] = [];
+
+  // Brand colors are defaults — theme controls how they are applied
+  if (hasTheme) {
+    lines.push(
+      `ORG BRAND COLORS — available palette. The VISUAL THEME section below controls how these colors are used (placement, density, emphasis). Do not override theme layout or color-usage rules with these values.`
+    );
+  } else {
+    lines.push(
+      `ORG BRAND COLORS — use these as the color palette for the generated view:`
+    );
+  }
+  lines.push(`- Primary: ${b.brand_primary}`);
+  lines.push(`- Accent: ${b.brand_accent}`);
+  lines.push(`- Success: ${b.brand_success}`);
+  lines.push(`- Text on dark: ${b.brand_text}`);
+
+  // Org identity — for attribution/footer only, never for view titles
+  if (b.org_display_name) {
+    lines.push(`- Organization name (use ONLY in footer or attribution, never as a view title or heading): ${b.org_display_name}`);
+  }
   if (b.logo_url) {
-    lines.push(`- Logo URL (use as <img> in header): ${b.logo_url}`);
+    lines.push(`- Logo URL (use in footer or small header badge, not as main heading): <img src="${b.logo_url}" alt="org logo" style="max-height:36px">`);
   }
   if (b.custom_center_text) {
-    lines.push(`- Custom center text: ${b.custom_center_text}`);
+    lines.push(`- Custom center text (for Command Center hub node only): ${b.custom_center_text}`);
   }
   if (b.remove_candela_footer) {
     lines.push(`- Do NOT include any "Powered by Candela" footer or branding.`);
@@ -61,82 +73,64 @@ function buildBrandDirective(b: BrandKit): string {
   return lines.join("\n");
 }
 
-function viewPrompts(b: BrandKit): Record<string, string> {
-  const primary = b.brand_primary;
-  const accent = b.brand_accent;
-  const success = b.brand_success;
-  const text = b.brand_text;
-  const orgName = b.org_display_name || "the organization";
-  const footerLine = b.remove_candela_footer
-    ? ""
-    : `- Include 'Powered by Candela · candela.education' in the footer`;
-  const logoLine = b.logo_url
-    ? `- Display the org logo in the header: <img src="${b.logo_url}" alt="${orgName}" style="max-height:36px">`
-    : "";
-
+function viewPrompts(): Record<string, string> {
   return {
     staff_dashboard: `Generate a complete HTML document for a Staff Dashboard. Use a dense operational layout with:
-- ${accent} progress bars
+- Progress bars using the accent color
 - KPI cards in a grid layout with large numbers
 - An AI insight panel at the bottom with key takeaways
-- Use ${primary} for headers, ${text} for backgrounds
+- Use the primary color for headers, text color for contrast
 - Font: DM Sans for body text, Cormorant Garamond for headings
-${logoLine}
-${footerLine}
+- The view title should describe the data (e.g. "Staff Dashboard" or the program name), NOT the org name
 Make it data-rich and operational. Include all provided data points.`,
 
     funder_public: `Generate a complete HTML document for a Funder Public View. Use:
-- Dark ${primary} background throughout
-- Outcome cards with ${text} text
+- Dark primary-color background throughout
+- Outcome cards with light text
 - A theory of change narrative section
 - Editorial, magazine-style feel with generous whitespace
-- ${accent} accents for highlights and dividers
+- Accent color for highlights and dividers
 - Font: Cormorant Garamond for headings, DM Sans for body
-- Display org name "${orgName}" in the header
-${logoLine}
-${footerLine}
+- The view title should describe the content (e.g. "Impact Report" or program name), NOT the org name
 Make it compelling for funders and stakeholders.`,
 
     embed_widget: `Generate a complete HTML document for a compact Website Embed Widget. Requirements:
 - Max width 400px, self-contained
 - Show top 3 metrics prominently
-- Include a ${accent} progress bar
-- Branded footer with ${success} accent
-- ${primary} header area
+- Include a progress bar using the accent color
+- Branded footer with success color accent
+- Primary color header area
 - Font: DM Sans throughout
-- Clean, minimal design suitable for embedding in any website
-${footerLine}`,
+- Clean, minimal design suitable for embedding in any website`,
 
     board_deck: `Generate a complete HTML document for a Board Deck Slide. Requirements:
 - Single-page, print-ready layout (landscape feel)
 - Key metrics in large, scannable format
 - AI-generated talking points panel on the right side
-- Clean grid layout with ${primary} headers
-- ${accent} accent elements
+- Clean grid layout with primary color headers
+- Accent color elements
 - Font: Cormorant Garamond for headings, DM Sans for body
 - Professional and executive-appropriate
-- Display org name "${orgName}" in the header
-${logoLine}
-${footerLine}`,
+- The view title should describe the content (e.g. "Board Report" or program name), NOT the org name`,
 
     command_center: `You are generating a self-contained, single HTML file for the Impact Command Center view. This is the flagship interactive presentation view for live funder meetings. It must be visually stunning and fully interactive.
 
 DESIGN REQUIREMENTS - follow exactly:
 
 LAYOUT:
-- Full dark canvas background: ${primary}
-- Header bar: "${orgName}" (left), program name (center), green pulsing LIVE dot + period selector dropdown (right), Story Mode button (top right)
-${logoLine ? `- ${logoLine.replace("- ", "")}` : ""}
+- Full dark canvas background using primary color
+- Header bar: program name (left or center), green pulsing LIVE dot + period selector dropdown (right), Story Mode button (top right)
+- If org logo is provided in brand data, display it as a small badge in the header — not as main title
 - Main area: SVG constellation web centered on screen
-- Footer: 'Click any node to explore · Story Mode for guided presentation' (left)${b.remove_candela_footer ? "" : `, 'Powered by Candela · candela.education' (right)`}
+- Footer: 'Click any node to explore · Story Mode for guided presentation' (left), org attribution or Candela footer (right, per brand settings)
 
 CONSTELLATION WEB:
-- 1 large central hub node (120px diameter) in ${accent} showing the most impactful cumulative number (total participants, lives changed, etc.) with label${b.custom_center_text ? ` '${b.custom_center_text}'` : ` 'LIVES CHANGED' or equivalent`}
+- 1 large central hub node (120px diameter) in accent color showing the most impactful cumulative number (total participants, lives changed, etc.) with label from custom_center_text if provided, otherwise 'LIVES CHANGED' or equivalent
 - 8 outer metric nodes (80px diameter) arranged in a circle around the hub, evenly spaced
 - Each outer node shows: metric value (large, bold, DM Sans), metric label (small, Cormorant Garamond)
 - Animated dashed lines connecting each outer node to the center hub - use CSS animation to make them pulse
 - Node ring: each node has a circular progress arc (SVG stroke-dasharray) showing progress toward target. Full ring = at/above target.
-- Node colors: ${success} = on track, ${accent} = watch/monitor, #E05A2B = at risk
+- Node colors: success color = on track, accent color = watch/monitor, #E05A2B = at risk
 - All nodes pulse with a subtle glow animation on load
 
 INTERACTIONS - every function MUST be defined in the script block:
@@ -160,27 +154,20 @@ TYPOGRAPHY:
 - Headings and node labels: Cormorant Garamond (import from Google Fonts)
 - Values, body, UI elements: DM Sans (import from Google Fonts)
 - Node values: 28px bold white
-- Node labels: 11px uppercase letter-spaced, ${text}
+- Node labels: 11px uppercase letter-spaced
 
-COLORS - use ONLY these:
-- ${primary} (background)
-- ${accent} (hub, highlights, Story Mode button)
-- ${text} (secondary text)
-- ${success} (on-track nodes, lines)
-- #E05A2B (at-risk nodes)
-- White (#FFFFFF) for primary values
+Use the brand colors provided in the system prompt for all color values. Refer to primary, accent, success, and text colors as defined there.
 
 Generate the complete HTML file with all CSS in a <style> block and all JavaScript in a single <script> block at the end. Every onclick/onchange handler referenced in the HTML MUST have a corresponding function defined in the script block.`,
 
     logic_model: `Generate a complete HTML document for a Logic Model table. Requirements:
 - Standard 5-column table: Inputs → Activities → Outputs → Outcomes → Impact
 - Derive content from the data points provided, mapping them to appropriate columns
-- Use ${primary} column headers
-- Alternating subtle row backgrounds using ${text}
-- ${accent} arrow connectors between columns
+- Primary color for column headers
+- Alternating subtle row backgrounds
+- Accent color arrow connectors between columns
 - Font: DM Sans throughout
-- Clean, professional, suitable for grant applications
-${footerLine}`,
+- Clean, professional, suitable for grant applications`,
   };
 }
 
@@ -231,10 +218,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const brandDirective = buildBrandDirective(brand);
-    const prompts = viewPrompts(brand);
-
-    // Parse body
+    // Parse body first so we know if a theme was selected
     const body = await req.json();
     const { dataPoints, selectedViews, theme, theme_id, layout } = body as {
       dataPoints: DataPoint[];
@@ -251,12 +235,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Resolve theme — check if user explicitly selected one
+    const resolvedThemeId = theme_id ?? theme ?? "candela-classic";
+    const hasExplicitTheme = !!(theme_id || theme);
+    const themeInstructions = getThemeInstructions(resolvedThemeId);
+
+    const brandDirective = buildBrandDirective(brand, hasExplicitTheme);
+    const prompts = viewPrompts();
+
     const dataContext = dataPoints
       .map((dp) => `- ${dp.label}: ${dp.value} (${dp.category})`)
       .join("\n");
-
-    // Resolve theme instructions
-    const themeInstructions = getThemeInstructions(theme_id ?? theme ?? "candela-classic");
 
     // Generate each view in parallel
     const results = await Promise.all(
@@ -264,13 +253,15 @@ export async function POST(req: NextRequest) {
         const prompt = prompts[viewType];
         if (!prompt) return { viewType, html: `<p>Unknown view type: ${viewType}</p>` };
 
-        const themeBlock = `\n\n--- VISUAL THEME ---\n${themeInstructions}\n\nApply this visual theme when generating the HTML. The theme defines layout structure, typography weight, color usage, and visual density. The Brand Kit colors (provided above) are always used — the theme defines HOW they are used.`;
+        const themeBlock = hasExplicitTheme
+          ? `\n\n--- VISUAL THEME (takes priority over brand kit for layout and color usage) ---\n${themeInstructions}\n\nThis theme was explicitly chosen by the user. Follow the theme's instructions for layout structure, typography weight, color placement, and visual density. Use the brand colors from above as the raw palette, but the theme decides WHERE and HOW each color is applied.`
+          : `\n\n--- VISUAL THEME ---\n${themeInstructions}\n\nApply this default theme. Use the brand colors as specified in the brand palette above.`;
 
         const message = await client.messages.create({
           model: "claude-sonnet-4-20250514",
           max_tokens: viewType === "command_center" ? 16384 : 8192,
           system:
-            `You are an expert HTML/CSS designer for nonprofit reporting tools.\n\n${brandDirective}\n\nReturn ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html> or <div>.`,
+            `You are an expert HTML/CSS designer for nonprofit reporting tools.\n\n${brandDirective}\n\nIMPORTANT: The view title and headings should describe the content or program — never use the organization name as the view title.\n\nReturn ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html> or <div>.`,
           messages: [
             {
               role: "user",
