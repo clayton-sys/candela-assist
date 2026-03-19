@@ -287,15 +287,35 @@ export async function POST(req: NextRequest) {
 
         const themeBlock = `\n\n--- VISUAL THEME ---\n${themeInstructions}\n\nApply this visual theme when generating the HTML. The theme defines layout structure, typography weight, color usage, and visual density. The Brand Kit colors (provided above) are always used — the theme defines HOW they are used.`;
 
+        const systemPrompt = `You are an expert HTML/CSS designer for nonprofit reporting tools.\n\n${colorDirective}\n\nIMPORTANT: The view title and headings should describe the content or program — never use the organization name as the view title.\n\nReturn ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html> or <div>.`;
+        const userPrompt = `${prompt}\n\nData Points:\n${dataContext}${themeBlock}`;
+
+        console.log('=== GENERATION PROMPT AUDIT ===');
+        console.log(`--- VIEW TYPE: ${viewType} ---`);
+        console.log('--- COLOR DIRECTIVE ---');
+        console.log(colorDirective);
+        console.log('--- VIEW PROMPT ---');
+        console.log(prompt);
+        console.log('--- THEME INSTRUCTIONS ---');
+        console.log(themeInstructions);
+        console.log('--- THEME BLOCK ---');
+        console.log(themeBlock);
+        console.log('--- DATA CONTEXT ---');
+        console.log(dataContext);
+        console.log('--- FULL SYSTEM PROMPT ---');
+        console.log(systemPrompt);
+        console.log('--- FULL USER PROMPT ---');
+        console.log(userPrompt);
+        console.log('=== END PROMPT AUDIT ===');
+
         const message = await client.messages.create({
           model: "claude-sonnet-4-20250514",
           max_tokens: viewType === "command_center" ? 16384 : 8192,
-          system:
-            `You are an expert HTML/CSS designer for nonprofit reporting tools.\n\n${colorDirective}\n\nIMPORTANT: The view title and headings should describe the content or program — never use the organization name as the view title.\n\nReturn ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html> or <div>.`,
+          system: systemPrompt,
           messages: [
             {
               role: "user",
-              content: `${prompt}\n\nData Points:\n${dataContext}${themeBlock}`,
+              content: userPrompt,
             },
           ],
         });
