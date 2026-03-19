@@ -37,21 +37,26 @@ const DEFAULT_BRAND: BrandKit = {
   remove_candela_footer: false,
 };
 
-function buildBrandDirective(b: BrandKit): string {
-  const orgName = b.org_display_name || "the organization";
+function buildColorDirective(
+  primary: string,
+  accent: string,
+  b: BrandKit
+): string {
   const lines = [
-    `BRAND OVERRIDES — use these instead of any default colors:`,
-    `- Primary / background: ${b.brand_primary}`,
-    `- Accent / highlight: ${b.brand_accent}`,
+    `COLOR PALETTE — use these colors for all styling:`,
+    `- Primary / background: ${primary}`,
+    `- Accent / highlight: ${accent}`,
     `- Success / on-track: ${b.brand_success}`,
     `- Text on primary: ${b.brand_text}`,
-    `- Organization name: ${orgName}`,
   ];
+  if (b.org_display_name) {
+    lines.push(`- Organization name (use ONLY in footer or attribution, never as a view title): ${b.org_display_name}`);
+  }
   if (b.logo_url) {
-    lines.push(`- Logo URL (use as <img> in header): ${b.logo_url}`);
+    lines.push(`- Logo URL (use in footer or small header badge): <img src="${b.logo_url}" alt="org logo" style="max-height:36px">`);
   }
   if (b.custom_center_text) {
-    lines.push(`- Custom center text: ${b.custom_center_text}`);
+    lines.push(`- Custom center text (for Command Center hub node only): ${b.custom_center_text}`);
   }
   if (b.remove_candela_footer) {
     lines.push(`- Do NOT include any "Powered by Candela" footer or branding.`);
@@ -61,17 +66,18 @@ function buildBrandDirective(b: BrandKit): string {
   return lines.join("\n");
 }
 
-function viewPrompts(b: BrandKit): Record<string, string> {
-  const primary = b.brand_primary;
-  const accent = b.brand_accent;
+function viewPrompts(
+  primary: string,
+  accent: string,
+  b: BrandKit
+): Record<string, string> {
   const success = b.brand_success;
   const text = b.brand_text;
-  const orgName = b.org_display_name || "the organization";
   const footerLine = b.remove_candela_footer
     ? ""
     : `- Include 'Powered by Candela · candela.education' in the footer`;
   const logoLine = b.logo_url
-    ? `- Display the org logo in the header: <img src="${b.logo_url}" alt="${orgName}" style="max-height:36px">`
+    ? `- Display the org logo in the header badge: <img src="${b.logo_url}" alt="org logo" style="max-height:36px">`
     : "";
 
   return {
@@ -92,7 +98,7 @@ Make it data-rich and operational. Include all provided data points.`,
 - Editorial, magazine-style feel with generous whitespace
 - ${accent} accents for highlights and dividers
 - Font: Cormorant Garamond for headings, DM Sans for body
-- Display org name "${orgName}" in the header
+- The view title should describe the content (e.g. "Impact Report" or the program name), NOT the org name
 ${logoLine}
 ${footerLine}
 Make it compelling for funders and stakeholders.`,
@@ -115,7 +121,7 @@ ${footerLine}`,
 - ${accent} accent elements
 - Font: Cormorant Garamond for headings, DM Sans for body
 - Professional and executive-appropriate
-- Display org name "${orgName}" in the header
+- The view title should describe the content (e.g. "Board Report" or the program name), NOT the org name
 ${logoLine}
 ${footerLine}`,
 
@@ -125,7 +131,8 @@ DESIGN REQUIREMENTS - follow exactly:
 
 LAYOUT:
 - Full dark canvas background: ${primary}
-- Header bar: "${orgName}" (left), program name (center), green pulsing LIVE dot + period selector dropdown (right), Story Mode button (top right)
+- Header bar: program name (left or center), green pulsing LIVE dot + period selector dropdown (right), Story Mode button (top right)
+- If org logo is provided, display as a small badge in the header
 ${logoLine ? `- ${logoLine.replace("- ", "")}` : ""}
 - Main area: SVG constellation web centered on screen
 - Footer: 'Click any node to explore · Story Mode for guided presentation' (left)${b.remove_candela_footer ? "" : `, 'Powered by Candela · candela.education' (right)`}
@@ -231,18 +238,32 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const brandDirective = buildBrandDirective(brand);
-    const prompts = viewPrompts(brand);
-
     // Parse body
     const body = await req.json();
-    const { dataPoints, selectedViews, theme, theme_id, layout } = body as {
+    const {
+      dataPoints,
+      selectedViews,
+      theme,
+      theme_id,
+      resolvedPrimary,
+      resolvedAccent,
+      layout,
+    } = body as {
       dataPoints: DataPoint[];
       selectedViews: string[];
       theme?: string;
       theme_id?: string;
+      resolvedPrimary?: string;
+      resolvedAccent?: string;
       layout?: string;
     };
+
+    // Use resolved colors from client if provided, otherwise fall back to brand kit
+    const primary = resolvedPrimary ?? brand.brand_primary;
+    const accent = resolvedAccent ?? brand.brand_accent;
+
+    const colorDirective = buildColorDirective(primary, accent, brand);
+    const prompts = viewPrompts(primary, accent, brand);
 
     if (!dataPoints?.length || !selectedViews?.length) {
       return NextResponse.json(
@@ -270,7 +291,7 @@ export async function POST(req: NextRequest) {
           model: "claude-sonnet-4-20250514",
           max_tokens: viewType === "command_center" ? 16384 : 8192,
           system:
-            `You are an expert HTML/CSS designer for nonprofit reporting tools.\n\n${brandDirective}\n\nReturn ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html> or <div>.`,
+            `You are an expert HTML/CSS designer for nonprofit reporting tools.\n\n${colorDirective}\n\nIMPORTANT: The view title and headings should describe the content or program — never use the organization name as the view title.\n\nReturn ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html> or <div>.`,
           messages: [
             {
               role: "user",

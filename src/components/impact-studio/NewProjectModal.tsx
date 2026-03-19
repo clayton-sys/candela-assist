@@ -13,6 +13,8 @@ import {
   Lock,
 } from "lucide-react";
 import ThemePicker from "./ThemePicker";
+import ColorSchemePicker from "./ColorSchemePicker";
+import { getColorSchemeById } from "@/lib/colorSchemes";
 
 interface Program {
   id: string;
@@ -149,8 +151,9 @@ export default function NewProjectModal({
     useState<SelectedViewType | null>(null);
   const [selectedMode, setSelectedMode] = useState<SelectedMode | null>(null);
 
-  // Step 3 fields — theme picker (narrative only)
+  // Step 3 fields — theme picker + color scheme (narrative only)
   const [selectedThemeId, setSelectedThemeId] = useState("candela-classic");
+  const [selectedColorScheme, setSelectedColorScheme] = useState("brand-kit");
   const [brandKit, setBrandKit] = useState<BrandKit | null>(null);
   const [orgPlan, setOrgPlan] = useState("starter");
 
@@ -514,6 +517,18 @@ export default function NewProjectModal({
       const apiViewType =
         WIZARD_TO_API_VIEW[selectedViewType ?? ""] ?? "funder_public";
 
+      // Resolve color scheme to actual hex values
+      let resolvedPrimary: string;
+      let resolvedAccent: string;
+      if (selectedColorScheme === "brand-kit" && brandKit) {
+        resolvedPrimary = brandKit.brand_primary;
+        resolvedAccent = brandKit.brand_accent;
+      } else {
+        const preset = getColorSchemeById(selectedColorScheme);
+        resolvedPrimary = preset?.primary ?? "#1B2B3A";
+        resolvedAccent = preset?.accent ?? "#E9C03A";
+      }
+
       // Call generate API
       const res = await fetch("/api/impact/generate", {
         method: "POST",
@@ -522,6 +537,8 @@ export default function NewProjectModal({
           dataPoints,
           selectedViews: [apiViewType],
           theme: selectedThemeId,
+          resolvedPrimary,
+          resolvedAccent,
           layout: "constellation",
         }),
       });
@@ -970,19 +987,40 @@ export default function NewProjectModal({
             </div>
           )}
 
-          {/* ===== STEP 3 (Narrative): Theme Picker ===== */}
+          {/* ===== STEP 3 (Narrative): Color Scheme + Theme Picker ===== */}
           {step === 3 && isNarrative && (
             <div className="px-6 pb-6">
-              <p className="text-sm text-[#1B2B3A]/60 mb-5" style={dmSans}>
-                Choose a visual style for your document
-              </p>
+              {/* Color Scheme Picker */}
+              <div className="mb-6">
+                <h3
+                  className="text-xs font-medium text-[#1B2B3A]/40 uppercase tracking-wider mb-3"
+                  style={dmSans}
+                >
+                  Color Scheme
+                </h3>
+                <ColorSchemePicker
+                  selectedId={selectedColorScheme}
+                  brandPrimary={brandKit?.brand_primary ?? null}
+                  brandAccent={brandKit?.brand_accent ?? null}
+                  onSelect={setSelectedColorScheme}
+                />
+              </div>
 
-              <ThemePicker
-                selectedThemeId={selectedThemeId}
-                orgPlan={orgPlan}
-                brandKit={brandKit}
-                onSelect={setSelectedThemeId}
-              />
+              {/* Theme Grid */}
+              <div>
+                <h3
+                  className="text-xs font-medium text-[#1B2B3A]/40 uppercase tracking-wider mb-3"
+                  style={dmSans}
+                >
+                  Layout &amp; Structure
+                </h3>
+                <ThemePicker
+                  selectedThemeId={selectedThemeId}
+                  orgPlan={orgPlan}
+                  brandKit={brandKit}
+                  onSelect={setSelectedThemeId}
+                />
+              </div>
 
               {/* Step 3 theme footer */}
               <div className="flex justify-between mt-6">
