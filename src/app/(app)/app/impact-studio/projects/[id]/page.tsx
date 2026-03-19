@@ -9,6 +9,7 @@ interface ProjectRun {
   is_latest: boolean;
   theme_id: string;
   created_at: string;
+  generated_views: { view_type: string }[] | null;
 }
 
 export default async function ProjectDetailPage({
@@ -43,10 +44,10 @@ export default async function ProjectDetailPage({
     );
   }
 
-  // Fetch all runs
+  // Fetch all runs with their generated view type
   const { data: runs } = await supabase
     .from("project_runs")
-    .select("id, version_number, is_latest, theme_id, created_at")
+    .select("id, version_number, is_latest, theme_id, created_at, generated_views(view_type)")
     .eq("project_id", project.id)
     .order("version_number", { ascending: false });
 
@@ -105,6 +106,7 @@ export default async function ProjectDetailPage({
         version_number: r.version_number,
         is_latest: r.is_latest,
         created_at: r.created_at,
+        view_type: r.generated_views?.[0]?.view_type ?? null,
       }))}
       initialHtml={outputHtml}
       initialContentMap={contentMap}

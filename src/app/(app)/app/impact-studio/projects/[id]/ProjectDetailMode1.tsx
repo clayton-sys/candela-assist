@@ -13,6 +13,7 @@ interface Run {
   version_number: number;
   is_latest: boolean;
   created_at: string;
+  view_type: string | null;
 }
 
 interface ProjectDetailMode1Props {
@@ -43,6 +44,26 @@ const STATUS_LABELS: Record<string, { label: string; bg: string; text: string }>
   ready: { label: "Ready", bg: "bg-[#1D9E75]/10", text: "text-[#1D9E75]" },
   complete: { label: "Complete", bg: "bg-[#E9C03A]/10", text: "text-[#E9C03A]" },
 };
+
+function toTitleCase(slug: string): string {
+  return slug
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function buildViewLabels(runs: Run[]): Map<string, string> {
+  const labels = new Map<string, string>();
+  // Runs arrive newest-first; count per view_type oldest-first
+  const reversed = [...runs].reverse();
+  const counters: Record<string, number> = {};
+  for (const run of reversed) {
+    const vt = run.view_type ?? "view";
+    counters[vt] = (counters[vt] ?? 0) + 1;
+    const displayType = VIEW_TYPE_LABELS[vt] ?? toTitleCase(vt);
+    labels.set(run.id, `View ${displayType} ${counters[vt]}`);
+  }
+  return labels;
+}
 
 function timeAgo(dateStr: string): string {
   const now = new Date();
@@ -76,6 +97,7 @@ export default function ProjectDetailMode1({
   );
   const [showNewRunModal, setShowNewRunModal] = useState(false);
   const [saveToast, setSaveToast] = useState(false);
+  const viewLabels = buildViewLabels(runs);
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
@@ -216,17 +238,17 @@ export default function ProjectDetailMode1({
             style={dmSans}
           >
             <Plus className="w-4 h-4" />
-            New Run
+            Edit View
           </button>
 
           <hr className="my-4 border-[#1B2B3A]/10" />
 
-          {/* Run History */}
+          {/* View History */}
           <p
             className="text-[11px] font-medium text-[#1B2B3A]/40 uppercase tracking-wider mb-3"
             style={dmSans}
           >
-            Run History
+            View History
           </p>
 
           {runs.length === 0 ? (
@@ -249,7 +271,7 @@ export default function ProjectDetailMode1({
                     style={dmSans}
                   >
                     <span className="text-[#1B2B3A]">
-                      Run {run.version_number}
+                      {viewLabels.get(run.id) ?? `View ${run.version_number}`}
                     </span>
                     <span className="text-[#1B2B3A]/30 ml-auto text-xs">
                       {timeAgo(run.created_at)}
