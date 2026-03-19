@@ -1100,6 +1100,16 @@ export default function NewProjectModal({
                 )}
               </div>
 
+              {/* Helper: must select data */}
+              {selectedDataIds.length === 0 && dataEntries.length > 0 && (
+                <p
+                  className="mt-3 text-xs text-[#1B2B3A]/40"
+                  style={dmSans}
+                >
+                  Select at least one data entry to generate your view.
+                </p>
+              )}
+
               {/* Generation error */}
               {generateError && (
                 <div
@@ -1125,7 +1135,7 @@ export default function NewProjectModal({
                 <button
                   type="button"
                   onClick={handleCreate}
-                  disabled={creating}
+                  disabled={creating || selectedDataIds.length === 0}
                   className="px-5 py-2 bg-[#3A6B8A] text-white rounded-lg text-sm font-medium hover:bg-[#2A5570] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
                   style={dmSans}
                 >
