@@ -26,11 +26,12 @@ interface ProjectDetailMode2Props {
 }
 
 const VIEW_TYPE_LABELS: Record<string, string> = {
-  output_generator: "Interactive View",
+  impact_snapshot: "Impact Snapshot",
+  funder_narrative: "Funder Narrative Report",
+  website_embed: "Website Embed",
+  program_profile: "Program Profile",
   impact_command_center: "Impact Command Center",
-  impact_journey: "Impact Journey",
-  staff_dashboard: "Staff Dashboard",
-  orbit_view: "Orbit View",
+  story_view: "Story View",
 };
 
 const STATUS_LABELS: Record<string, { label: string; bg: string; text: string }> = {

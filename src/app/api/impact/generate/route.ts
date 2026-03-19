@@ -74,107 +74,17 @@ function buildIdentityDirective(b: BrandKit): string {
 
 function viewPrompts(): Record<string, string> {
   return {
-    staff_dashboard: `Generate a complete HTML document for a Staff Dashboard.
+    impact_snapshot: `Generate a single-viewport impact summary page. Required sections: header with org logo badge and report title, hero stat with bold typography, program card grid showing outcomes per program, client voice quote, closing agency narrative. Audience: board members, community stakeholders, quick-read funders. Font: Cormorant Garamond for headings, DM Sans for body.`,
 
-Required sections:
-- KPI cards in a grid layout with large numbers
-- Progress bars for key metrics
-- An AI insight panel at the bottom with key takeaways
-- Header with org logo badge and a descriptive dashboard title (not the org name)
-- Footer with org logo and 'Powered by Candela · candela.education'
+    funder_narrative: `Generate a longform funder report. Required sections: header with org logo badge and descriptive report title, agency narrative introduction, per-program sections each containing outcome narrative, quantitative metrics display, client voice quote, barriers and context, what changed and forward-looking notes, closing statement, footer with attribution. Audience: funders and community stakeholders. Font: Cormorant Garamond for headings, DM Sans for body.`,
 
-Audience: program staff and managers. Make it data-rich and operational.
-Font: Cormorant Garamond for headings, DM Sans for body.
-Include all provided data points.`,
+    website_embed: `Generate an embeddable widget. Required sections: 3 featured stat cards, rotating client quote cycling every 6 seconds, small footer with org attribution. Must fit a standard website sidebar at 400px width. No header. Audience: website visitors. Font: Cormorant Garamond for headings, DM Sans for body.`,
 
-    funder_public: `Generate a complete HTML document for a Funder Narrative Report.
+    program_profile: `Generate a single-program profile card. Required sections: program name, one large centered headline stat, short AI-drafted narrative paragraph (2-3 sentences), client voice quote, small footer with org attribution. Portrait orientation. Audience: donors, social media, event materials. Font: Cormorant Garamond for headings, DM Sans for body.`,
 
-Required sections:
-- Header with org logo badge and a descriptive report title (not the org name)
-- Program outcome narrative section
-- Quantitative metrics display
-- Client voice / employer/partner quotes section
-- Barriers and context section
-- What changed / forward-looking section
-- Footer with org logo and 'Powered by Candela · candela.education'
+    impact_command_center: `Generate an interactive impact dashboard. Required sections: agency header with logo, program navigation showing all programs by name, per-program detail panel with metrics, outcomes narrative, and client voice quote, period label. Include a toggle to view all programs side by side. Full dark canvas layout. Audience: leadership, board, sophisticated funders. Font: Cormorant Garamond for headings, DM Sans for body.`,
 
-Audience: funders and community stakeholders. Make it compelling and credible.
-Font: Cormorant Garamond for headings, DM Sans for body.`,
-
-    embed_widget: `Generate a complete HTML document for a compact Website Embed Widget.
-
-Required sections:
-- Max width 400px, self-contained
-- Top 3 metrics displayed prominently
-- Progress bar for a key metric
-- Branded footer
-
-Audience: website visitors. Clean and minimal, suitable for embedding in any website.
-Font: DM Sans throughout.`,
-
-    board_deck: `Generate a complete HTML document for a Board Deck Slide.
-
-Required sections:
-- Single-page, print-ready layout (landscape feel)
-- Key metrics in large, scannable format
-- AI-generated talking points panel on the right side
-- Header with org logo badge and a descriptive title (not the org name)
-- Footer with org logo and 'Powered by Candela · candela.education'
-
-Audience: board members and executives. Professional and executive-appropriate.
-Font: Cormorant Garamond for headings, DM Sans for body.`,
-
-    command_center: `You are generating a self-contained, single HTML file for the Impact Command Center view. This is the flagship interactive presentation view for live funder meetings. It must be fully interactive.
-
-LAYOUT:
-- Full dark canvas background
-- Header bar: program name (left or center), green pulsing LIVE dot + period selector dropdown (right), Story Mode button (top right)
-- If org logo is provided, display as a small badge in the header
-- Main area: SVG constellation web centered on screen
-- Footer: 'Click any node to explore · Story Mode for guided presentation' (left), 'Powered by Candela · candela.education' (right)
-
-CONSTELLATION WEB:
-- 1 large central hub node (120px diameter) showing the most impactful cumulative number (total participants, lives changed, etc.) with label
-- 8 outer metric nodes (80px diameter) arranged in a circle around the hub, evenly spaced
-- Each outer node shows: metric value (large, bold) and metric label (small)
-- Animated dashed lines connecting each outer node to the center hub - use CSS animation to make them pulse
-- Node ring: each node has a circular progress arc (SVG stroke-dasharray) showing progress toward target. Full ring = at/above target.
-- Status-based node coloring: on track, watch/monitor, at risk
-- All nodes pulse with a subtle glow animation on load
-
-INTERACTIONS - every function MUST be defined in the script block:
-- Clicking any outer node opens a detail card panel on the right side
-- Detail card contains: metric name, current value vs target, status badge (On Track/Watch/At Risk), a mini sparkline chart (use inline SVG bars for 5 quarters of trend data), 4-metric breakdown list, and an AI talking point paragraph generated from the data
-- Detail card has a close button
-- Central hub click shows overall program summary card
-- All click handlers (toggleNode, closeDetail, toggleStoryMode, changePeriod) MUST be defined as JavaScript functions in the <script> block
-
-STORY MODE:
-- Story Mode button in top right toggles Story Mode on/off
-- In Story Mode: a bottom bar appears with Back/Next buttons, dot scrubbers (one per node), and a step counter
-- Each step highlights one node with a bright ring and opens its detail card automatically
-- User can exit Story Mode at any time by clicking the button again or clicking any node directly
-
-PERIOD SELECTOR:
-- Dropdown shows Q1, Q2, Q3, Q4, Annual
-- Changing period updates all node values with a smooth CSS transition
-
-TYPOGRAPHY:
-- Headings and node labels: Cormorant Garamond (import from Google Fonts)
-- Values, body, UI elements: DM Sans (import from Google Fonts)
-
-Generate the complete HTML file with all CSS in a <style> block and all JavaScript in a single <script> block at the end. Every onclick/onchange handler referenced in the HTML MUST have a corresponding function defined in the script block.`,
-
-    logic_model: `Generate a complete HTML document for a Logic Model table.
-
-Required sections:
-- Standard 5-column table: Inputs → Activities → Outputs → Outcomes → Impact
-- Derive content from the data points provided, mapping them to appropriate columns
-- Arrow connectors between columns
-- Footer with 'Powered by Candela · candela.education'
-
-Audience: grant reviewers. Clean, professional, suitable for grant applications.
-Font: DM Sans throughout.`,
+    story_view: `Generate a scrollytelling impact narrative. Required sections: full-viewport opening with agency name and period, per-program sequence sections each with program name, description, key metrics with count-up animation, and client voice quote, closing agency outcomes section. Each section should be 100vh. Audience: donors, community, gala attendees. Font: Cormorant Garamond for headings, DM Sans for body.`,
   };
 }
 
@@ -288,7 +198,7 @@ export async function POST(req: NextRequest) {
 
         const message = await client.messages.create({
           model: "claude-sonnet-4-20250514",
-          max_tokens: viewType === "command_center" ? 16384 : 8192,
+          max_tokens: (viewType === "impact_command_center" || viewType === "story_view") ? 16384 : 8192,
           system: systemPrompt,
           messages: [
             {

@@ -119,13 +119,13 @@ export default function OnboardingPage() {
       setAnalyzing(false);
       setGenerating(true);
 
-      // 2) Generate command_center view
+      // 2) Generate impact_command_center view
       const genRes = await fetch("/api/impact/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           dataPoints,
-          selectedViews: ["command_center"],
+          selectedViews: ["impact_command_center"],
         }),
       });
       if (!genRes.ok) {
@@ -135,7 +135,7 @@ export default function OnboardingPage() {
       const { outputs } = (await genRes.json()) as {
         outputs: Record<string, string>;
       };
-      setGeneratedHtml(outputs.command_center ?? null);
+      setGeneratedHtml(outputs.impact_command_center ?? null);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Something went wrong";
@@ -236,7 +236,7 @@ export default function OnboardingPage() {
             project_id: projectData.id,
             raw_data: rawData,
             generated_html: generatedHtml,
-            view_type: "command_center",
+            view_type: "impact_command_center",
           });
         }
       }

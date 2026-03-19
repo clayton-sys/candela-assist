@@ -23,15 +23,15 @@ export default function LiveViewClient({
 
   function renderView() {
     switch (viewType) {
-      case "staff_dashboard":
-        return <StaffDashboard data={outputData} brandKit={brandKit} />;
       case "impact_command_center":
-      case "funder_command_center":
         return <ImpactCommandCenter data={outputData} brandKit={brandKit} />;
-      case "impact_journey":
+      case "story_view":
         return <ImpactJourney data={outputData} brandKit={brandKit} />;
-      case "orbit_view":
-        return <OrbitView data={outputData} brandKit={brandKit} />;
+      case "impact_snapshot":
+      case "funder_narrative":
+      case "website_embed":
+      case "program_profile":
+        return <StaffDashboard data={outputData} brandKit={brandKit} />;
       default:
         return (
           <div

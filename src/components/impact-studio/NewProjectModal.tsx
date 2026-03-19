@@ -10,7 +10,6 @@ import {
   ChevronLeft,
   Database,
   Palette,
-  Lock,
 } from "lucide-react";
 import ThemePicker from "./ThemePicker";
 import ColorSchemePicker from "./ColorSchemePicker";
@@ -36,21 +35,11 @@ interface BrandKit {
   logo_url: string | null;
 }
 
-// Granular view types
-type DocumentViewType = "funder_report" | "board_deck" | "grant_narrative";
-type InteractiveViewType =
-  | "impact_command_center"
-  | "impact_journey"
-  | "staff_dashboard"
-  | "orbit_view";
+// Canonical view types — used identically in UI, API, and DB
+type DocumentViewType = "impact_snapshot" | "funder_narrative" | "website_embed" | "program_profile";
+type InteractiveViewType = "impact_command_center" | "story_view";
 type SelectedViewType = DocumentViewType | InteractiveViewType;
 type SelectedMode = "narrative" | "interactive";
-
-// Map view types to DB project_type values
-const VIEW_TYPE_TO_PROJECT_TYPE: Record<SelectedMode, string> = {
-  narrative: "funder_format",
-  interactive: "output_generator",
-};
 
 const DOCUMENT_VIEWS: {
   type: DocumentViewType;
@@ -58,19 +47,24 @@ const DOCUMENT_VIEWS: {
   description: string;
 }[] = [
   {
-    type: "funder_report",
-    name: "Funder Report",
-    description: "Comprehensive narrative report tailored for funders",
+    type: "impact_snapshot",
+    name: "Impact Snapshot",
+    description: "Single-page visual summary of agency-wide outcomes",
   },
   {
-    type: "board_deck",
-    name: "Board Deck",
-    description: "Presentation-ready slides for board meetings",
+    type: "funder_narrative",
+    name: "Funder Narrative Report",
+    description: "Editorial longform report for funders and stakeholders",
   },
   {
-    type: "grant_narrative",
-    name: "Grant Narrative",
-    description: "Structured narrative for grant applications",
+    type: "website_embed",
+    name: "Website Embed",
+    description: "Embeddable widget with featured stats and rotating quote",
+  },
+  {
+    type: "program_profile",
+    name: "Program Profile",
+    description: "One program, one powerful stat, shareable portrait",
   },
 ];
 
@@ -78,41 +72,18 @@ const INTERACTIVE_VIEWS: {
   type: InteractiveViewType;
   name: string;
   description: string;
-  locked?: boolean;
 }[] = [
   {
     type: "impact_command_center",
     name: "Impact Command Center",
-    description: "Interactive dashboard with drillable metric nodes",
+    description: "Drill-down constellation of all programs and outcomes",
   },
   {
-    type: "impact_journey",
-    name: "Impact Journey",
-    description: "Visual narrative of your organization's impact over time",
-  },
-  {
-    type: "staff_dashboard",
-    name: "Staff Dashboard",
-    description: "Operational KPIs and progress tracking for staff",
-  },
-  {
-    type: "orbit_view",
-    name: "Orbit View",
-    description: "Radial visualization of interconnected outcomes",
-    locked: true,
+    type: "story_view",
+    name: "Story View",
+    description: "Scrollytelling narrative journey through program impact",
   },
 ];
-
-// Map wizard view types to the API's view type keys
-const WIZARD_TO_API_VIEW: Record<string, string> = {
-  funder_report: "funder_public",
-  board_deck: "board_deck",
-  grant_narrative: "funder_public",
-  impact_command_center: "command_center",
-  impact_journey: "command_center",
-  staff_dashboard: "staff_dashboard",
-  orbit_view: "command_center",
-};
 
 interface NewProjectModalProps {
   onClose: () => void;
@@ -419,7 +390,7 @@ export default function NewProjectModal({
             org_id: orgId,
             name: projectName.trim(),
             program_id: finalProgramId,
-            project_type: VIEW_TYPE_TO_PROJECT_TYPE[selectedMode!],
+            project_type: selectedViewType ?? "impact_snapshot",
             status: "in_progress",
             created_by: userId,
           })
@@ -513,9 +484,8 @@ export default function NewProjectModal({
           });
       }
 
-      // Map wizard view type to API view type
-      const apiViewType =
-        WIZARD_TO_API_VIEW[selectedViewType ?? ""] ?? "funder_public";
+      // View type is now the canonical API key directly
+      const apiViewType = selectedViewType ?? "impact_snapshot";
 
       // Resolve color scheme to actual hex values
       let resolvedPrimary: string;
@@ -893,59 +863,33 @@ export default function NewProjectModal({
                 <div className="grid grid-cols-1 gap-2">
                   {INTERACTIVE_VIEWS.map((view) => {
                     const isSelected = selectedViewType === view.type;
-                    const isLocked = view.locked === true;
                     return (
                       <button
                         key={view.type}
-                        onClick={
-                          isLocked
-                            ? undefined
-                            : () =>
-                                selectViewType(view.type, "interactive")
+                        onClick={() =>
+                          selectViewType(view.type, "interactive")
                         }
-                        disabled={isLocked}
                         className={`relative text-left p-4 border-2 rounded-xl transition-all ${
-                          isLocked
-                            ? "opacity-50 cursor-not-allowed border-[#1B2B3A]/10"
-                            : isSelected
+                          isSelected
                             ? "border-[#E9C03A] bg-[#E9C03A]/5 ring-2 ring-[#E9C03A]/20"
                             : "border-[#1B2B3A]/10 hover:border-[#3A6B8A] hover:bg-[#3A6B8A]/5"
                         }`}
-                        style={isLocked ? { pointerEvents: "none" } : undefined}
                       >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
                             <h4
                               className="text-base font-medium text-[#1B2B3A]"
                               style={cormorant}
                             >
                               {view.name}
                             </h4>
-                            {isLocked && (
-                              <span
-                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-[#1B2B3A]/10 text-[#1B2B3A]/50 rounded-full text-[10px] font-medium"
-                                style={dmSans}
-                              >
-                                <Lock className="w-2.5 h-2.5" />
-                                Pro
-                              </span>
-                            )}
+                            <p
+                              className="text-xs text-[#1B2B3A]/50 mt-0.5"
+                              style={dmSans}
+                            >
+                              {view.description}
+                            </p>
                           </div>
-                          <p
-                            className="text-xs text-[#1B2B3A]/50 mt-0.5"
-                            style={dmSans}
-                          >
-                            {view.description}
-                          </p>
-                          <p
-                            className="text-[11px] mt-1"
-                            style={{
-                              ...dmSans,
-                              color: "rgba(27, 43, 58, 0.45)",
-                            }}
-                          >
-                            AI-generated · Uses your Brand Kit colors
-                          </p>
                         </div>
                         {isSelected && (
                           <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-[#E9C03A] flex items-center justify-center">

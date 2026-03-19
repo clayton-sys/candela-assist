@@ -9,7 +9,7 @@ export interface Project {
   program_id: string | null;
   program_name: string | null;
   funder_name: string | null;
-  project_type: "output_generator" | "funder_format";
+  project_type: string;
   status: "in_progress" | "waiting" | "ready" | "complete";
   blocking_message: string | null;
   period_label: string | null;
@@ -105,15 +105,15 @@ export default function ProjectCard({
         {/* Type badge */}
         <span
           className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
-            project.project_type === "output_generator"
+            (project.project_type === "impact_command_center" || project.project_type === "story_view")
               ? "bg-[#3A6B8A]/10 text-[#3A6B8A]"
               : "bg-[#E9C03A]/15 text-[#BA7517]"
           }`}
           style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
         >
-          {project.project_type === "output_generator"
-            ? "Output Generator"
-            : "Funder Format"}
+          {(project.project_type === "impact_command_center" || project.project_type === "story_view")
+            ? "Interactive"
+            : "Document"}
         </span>
 
         {/* Period */}
@@ -170,15 +170,15 @@ export default function ProjectCard({
         <div className="flex items-center justify-between mb-3">
           <span
             className={`text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full ${
-              project.project_type === "output_generator"
+              (project.project_type === "impact_command_center" || project.project_type === "story_view")
                 ? "bg-[#3A6B8A]/10 text-[#3A6B8A]"
                 : "bg-[#E9C03A]/15 text-[#BA7517]"
             }`}
             style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
           >
-            {project.project_type === "output_generator"
-              ? "Output Generator"
-              : "Funder Format"}
+            {(project.project_type === "impact_command_center" || project.project_type === "story_view")
+              ? "Interactive"
+              : "Document"}
           </span>
           <div className="flex items-center gap-1.5">
             <div

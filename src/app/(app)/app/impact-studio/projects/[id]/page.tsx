@@ -80,7 +80,7 @@ export default async function ProjectDetailPage({
   }
 
   // Branch: Mode 1 (narrative/document) vs Mode 2 (interactive)
-  const isMode2 = project.project_type === "output_generator";
+  const isMode2 = project.project_type === "impact_command_center" || project.project_type === "story_view";
 
   if (isMode2) {
     return (

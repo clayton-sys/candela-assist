@@ -20,7 +20,7 @@ import NewProjectModal from "@/components/impact-studio/NewProjectModal";
 
 type SortKey = "updated_at" | "status" | "funder_name" | "program_name";
 type StatusFilter = "all" | "in_progress" | "waiting" | "ready" | "complete";
-type TypeFilter = "all" | "output_generator" | "funder_format";
+type TypeFilter = "all" | "document" | "interactive";
 
 const STATUS_ORDER: Record<string, number> = {
   ready: 0,
@@ -171,7 +171,7 @@ export default function WorkspacePage() {
         program_id: p.program_id ?? null,
         program_name: p.program_id ? programMap.get(p.program_id) ?? null : null,
         funder_name: null,
-        project_type: p.project_type ?? "output_generator",
+        project_type: p.project_type ?? "impact_snapshot",
         status: p.status ?? "in_progress",
         blocking_message: p.blocking_message ?? null,
         period_label: null,
@@ -230,8 +230,10 @@ export default function WorkspacePage() {
     }
 
     // Type filter
-    if (typeFilter !== "all") {
-      filtered = filtered.filter((p) => p.project_type === typeFilter);
+    if (typeFilter === "interactive") {
+      filtered = filtered.filter((p) => p.project_type === "impact_command_center" || p.project_type === "story_view");
+    } else if (typeFilter === "document") {
+      filtered = filtered.filter((p) => p.project_type !== "impact_command_center" && p.project_type !== "story_view");
     }
 
     // Program filter
@@ -399,8 +401,8 @@ export default function WorkspacePage() {
           style={dmSans}
         >
           <option value="all">All Types</option>
-          <option value="output_generator">Output Generator</option>
-          <option value="funder_format">Funder Format</option>
+          <option value="document">Document</option>
+          <option value="interactive">Interactive</option>
         </select>
 
         {/* Program filter */}

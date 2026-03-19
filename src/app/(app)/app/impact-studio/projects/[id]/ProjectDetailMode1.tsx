@@ -31,11 +31,12 @@ interface ProjectDetailMode1Props {
 }
 
 const VIEW_TYPE_LABELS: Record<string, string> = {
-  funder_format: "Document View",
-  funder_report: "Funder Report",
-  board_deck: "Board Deck",
-  grant_narrative: "Grant Narrative",
-  output_generator: "Output Generator",
+  impact_snapshot: "Impact Snapshot",
+  funder_narrative: "Funder Narrative Report",
+  website_embed: "Website Embed",
+  program_profile: "Program Profile",
+  impact_command_center: "Impact Command Center",
+  story_view: "Story View",
 };
 
 const STATUS_LABELS: Record<string, { label: string; bg: string; text: string }> = {
