@@ -286,8 +286,6 @@ export async function POST(req: NextRequest) {
         ].join("\n");
         const userPrompt = `${prompt}\n\nData Points:\n${dataContext}`;
 
-        console.log('SYSTEM PROMPT:', systemPrompt);
-
         const message = await client.messages.create({
           model: "claude-sonnet-4-20250514",
           max_tokens: viewType === "command_center" ? 16384 : 8192,
