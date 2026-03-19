@@ -59,13 +59,12 @@ export default async function ProjectDetailPage({
   // Fetch generated_views for latest run
   let outputHtml: string | null = null;
   let viewType: string | null = null;
-  let contentMap: Record<string, string> | null = null;
   let viewId: string | null = null;
 
   if (latestRun) {
     const { data: view } = await supabase
       .from("generated_views")
-      .select("id, output_html, view_type, content_map")
+      .select("id, output_html, view_type")
       .eq("run_id", latestRun.id)
       .limit(1)
       .single();
@@ -73,7 +72,6 @@ export default async function ProjectDetailPage({
     if (view) {
       outputHtml = view.output_html ?? null;
       viewType = view.view_type ?? null;
-      contentMap = (view.content_map as Record<string, string>) ?? null;
       viewId = view.id ?? null;
     }
   }
@@ -107,7 +105,7 @@ export default async function ProjectDetailPage({
         created_at: r.created_at,
       }))}
       initialHtml={outputHtml}
-      initialContentMap={contentMap}
+      initialContentMap={null}
       initialViewId={viewId}
     />
   );

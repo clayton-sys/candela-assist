@@ -573,6 +573,12 @@ export default function NewProjectModal({
         }
       }
 
+      // Mark project as complete
+      await supabase
+        .from("projects")
+        .update({ status: "complete" })
+        .eq("id", projectId);
+
       console.log(
         "[NewProjectModal] Project + generation complete:",
         projectId
@@ -580,6 +586,7 @@ export default function NewProjectModal({
       onCreated();
       onClose();
       router.push(`/app/impact-studio/projects/${projectId}`);
+      router.refresh();
     } catch (err) {
       console.error("Error creating project:", err);
       setGenerateError("An unexpected error occurred.");
