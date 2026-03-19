@@ -990,6 +990,10 @@ export default function NewProjectModal({
           {/* ===== STEP 3 (Narrative): Color Scheme + Theme Picker ===== */}
           {step === 3 && isNarrative && (
             <div className="px-6 pb-6">
+              <p className="text-sm text-[#1B2B3A]/60 mb-5" style={dmSans}>
+                Choose a visual style for your document
+              </p>
+
               {/* Color Scheme Picker */}
               <div className="mb-6">
                 <h3
