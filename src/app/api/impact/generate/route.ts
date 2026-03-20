@@ -445,6 +445,7 @@ export async function POST(req: NextRequest) {
       layout,
       programDataIds,
       orgId,
+      force_regenerate,
     } = body as {
       dataPoints: DataPoint[];
       selectedViews: string[];
@@ -455,6 +456,7 @@ export async function POST(req: NextRequest) {
       layout?: string;
       programDataIds?: string[];
       orgId?: string;
+      force_regenerate?: boolean;
     };
 
     // Use resolved colors from client if provided, otherwise fall back to brand kit
@@ -514,13 +516,35 @@ REQUIRED flag behavior — these rules override all other instructions:
     // Resolve theme instructions
     const themeInstructions = getThemeInstructions(theme_id ?? theme ?? "candela-classic");
 
-    // Generate each view in parallel
-    const results = await Promise.all(
-      selectedViews.map(async (viewType) => {
-        const prompt = prompts[viewType];
-        if (!prompt) return { viewType, html: `<p>Unknown view type: ${viewType}</p>` };
+    // Cache check — returns existing output if same view/theme/data was generated before
+    if (!force_regenerate && selectedViews.length === 1) {
+      const cacheViewType = selectedViews[0];
+      const { data: cached } = await supabase
+        .from("generated_views")
+        .select("output_html, id")
+        .eq("view_type", cacheViewType)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
 
-        const systemPrompt = [
+      if (cached?.output_html) {
+        return new Response(
+          JSON.stringify({ outputs: { [cacheViewType]: cached.output_html }, cached: true }),
+          { headers: { "Content-Type": "application/json", "X-Cache": "HIT" } }
+        );
+      }
+    }
+
+    // Generate — streaming for single views, parallel for multi
+    const viewType = selectedViews[0];
+
+    if (selectedViews.length === 1) {
+      const prompt = prompts[viewType];
+      if (!prompt) {
+        return NextResponse.json({ outputs: { [viewType]: `<p>Unknown view type: ${viewType}</p>` } });
+      }
+
+      const systemPrompt = [
           `You are the creative director at a boutique studio that charges $85,000 for a nonprofit annual report. Your clients include community foundations, national advocacy organizations, and civil rights nonprofits. Your work has been featured in Communication Arts, shortlisted for D&AD, and cited in the Information is Beautiful Awards. You have spent 15 years perfecting the art of making data feel human.
 Your philosophy: restraint is power, whitespace is an argument, and every typographic decision either earns its place or gets cut. You do not use templates. You do not produce generic output. Every layout decision is intentional.
 You are generating a visual artifact for a real nonprofit. The data inside represents real people — participants, clients, community members — whose lives were changed by this organization's work. The design must honor that weight while being visually stunning enough to open doors, secure funding, and make a funder lean forward in their seat.
@@ -612,29 +636,100 @@ Structure and decoration:
           ``,
           `Return ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html>.`,
         ].join("\n");
+      const userPrompt = payload
+        ? `${prompt}\n\n${dataBlock}\n\nGenerate a complete, self-contained HTML document for:\n- view_type: ${viewType}\n- theme: ${theme_id ?? theme ?? "candela-classic"}`
+        : `${prompt}\n\n${dataBlock}`;
+
+      const maxTokens = (viewType === "impact_command_center" || viewType === "story_view") ? 10000 : 8192;
+
+      const stream = client.messages.stream({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: maxTokens,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
+      });
+
+      const encoder = new TextEncoder();
+
+      const readable = new ReadableStream({
+        async start(controller) {
+          try {
+            let fullHtml = "";
+
+            for await (const event of stream) {
+              if (
+                event.type === "content_block_delta" &&
+                event.delta.type === "text_delta"
+              ) {
+                const text = event.delta.text;
+                fullHtml += text;
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify({ chunk: text })}\n\n`)
+                );
+              }
+            }
+
+            // Strip code fences if present
+            const fenceMatch = fullHtml.match(/```(?:html)?\s*([\s\S]*?)```/);
+            if (fenceMatch) fullHtml = fenceMatch[1].trim();
+
+            // Send done signal with complete HTML
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ done: true, html: fullHtml })}\n\n`)
+            );
+            controller.close();
+          } catch (err) {
+            console.error("Stream error:", err);
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ error: "Generation failed" })}\n\n`)
+            );
+            controller.close();
+          }
+        },
+      });
+
+      return new Response(readable, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      });
+    }
+
+    // Multi-view fallback (non-streaming)
+    const results = await Promise.all(
+      selectedViews.map(async (vt) => {
+        const prompt = prompts[vt];
+        if (!prompt) return { viewType: vt, html: `<p>Unknown view type: ${vt}</p>` };
+
+        const systemPrompt = [
+          `You are the creative director at a boutique studio that charges $85,000 for a nonprofit annual report.`,
+          ``,
+          `VISUAL THEME:\n${themeInstructions}`,
+          ``,
+          colorDirective,
+          ``,
+          identityDirective,
+          ``,
+          `Return ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html>.`,
+        ].join("\n");
         const userPrompt = payload
-          ? `${prompt}\n\n${dataBlock}\n\nGenerate a complete, self-contained HTML document for:\n- view_type: ${viewType}\n- theme: ${theme_id ?? theme ?? "candela-classic"}`
+          ? `${prompt}\n\n${dataBlock}\n\nGenerate a complete, self-contained HTML document for:\n- view_type: ${vt}\n- theme: ${theme_id ?? theme ?? "candela-classic"}`
           : `${prompt}\n\n${dataBlock}`;
 
         const message = await client.messages.create({
           model: "claude-sonnet-4-20250514",
-          max_tokens: (viewType === "impact_command_center" || viewType === "story_view") ? 16384 : 8192,
+          max_tokens: 8192,
           system: systemPrompt,
-          messages: [
-            {
-              role: "user",
-              content: userPrompt,
-            },
-          ],
+          messages: [{ role: "user", content: userPrompt }],
         });
 
         const content = message.content[0];
         let html = content.type === "text" ? content.text.trim() : "";
-        // Strip code fences if present
         const fenceMatch = html.match(/```(?:html)?\s*([\s\S]*?)```/);
         if (fenceMatch) html = fenceMatch[1].trim();
-
-        return { viewType, html };
+        return { viewType: vt, html };
       })
     );
 
@@ -642,7 +737,6 @@ Structure and decoration:
     for (const r of results) {
       outputs[r.viewType] = r.html;
     }
-
     return NextResponse.json({ outputs });
   } catch (error) {
     console.error("Generate route error:", error);

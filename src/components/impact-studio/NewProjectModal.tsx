@@ -144,6 +144,8 @@ export default function NewProjectModal({
   const [step, setStep] = useState(isNewRun ? 2 : 1);
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingHtml, setStreamingHtml] = useState("");
 
   // The data step number depends on path
   const dataStep = isNarrative ? 4 : 3;
@@ -526,9 +528,63 @@ export default function NewProjectModal({
         return;
       }
 
-      const genData = await res.json();
-      const outputHtml =
-        genData.outputs?.[apiViewType] ?? Object.values(genData.outputs ?? {})[0] ?? null;
+      let outputHtml: string | null = null;
+
+      // Handle cache hit (non-streaming JSON response)
+      if (res.headers.get("X-Cache") === "HIT") {
+        const genData = await res.json();
+        outputHtml =
+          genData.outputs?.[apiViewType] ?? Object.values(genData.outputs ?? {})[0] ?? null;
+      } else if (res.headers.get("Content-Type")?.includes("text/event-stream")) {
+        // Handle streaming response
+        const reader = res.body?.getReader();
+        const decoder = new TextDecoder();
+
+        if (!reader) throw new Error("No response body");
+
+        setIsStreaming(true);
+        setStreamingHtml("");
+        let accumulated = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const text = decoder.decode(value, { stream: true });
+          const lines = text.split("\n\n").filter((line) => line.startsWith("data: "));
+
+          for (const line of lines) {
+            try {
+              const json = JSON.parse(line.replace("data: ", ""));
+              if (json.chunk) {
+                accumulated += json.chunk;
+                setStreamingHtml(accumulated);
+              }
+              if (json.done) {
+                outputHtml = json.html ?? accumulated;
+                setIsStreaming(false);
+              }
+              if (json.error) {
+                setGenerateError(json.error);
+                setIsStreaming(false);
+                setGenerating(false);
+                setCreating(false);
+                return;
+              }
+            } catch {
+              // Ignore malformed SSE lines
+            }
+          }
+        }
+
+        setIsStreaming(false);
+        if (!outputHtml) outputHtml = accumulated;
+      } else {
+        // Fallback: standard JSON response (multi-view)
+        const genData = await res.json();
+        outputHtml =
+          genData.outputs?.[apiViewType] ?? Object.values(genData.outputs ?? {})[0] ?? null;
+      }
 
       if (outputHtml) {
         // Save to generated_views
@@ -1119,6 +1175,24 @@ export default function NewProjectModal({
                   style={dmSans}
                 >
                   {generateError}
+                </div>
+              )}
+
+              {/* Streaming preview */}
+              {isStreaming && streamingHtml && (
+                <div className="mt-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-2 h-2 rounded-full bg-[#E9C03A] animate-pulse" />
+                    <span className="text-xs text-[#1B2B3A]/50" style={dmSans}>
+                      Generating...
+                    </span>
+                  </div>
+                  <iframe
+                    srcDoc={streamingHtml}
+                    sandbox="allow-scripts allow-same-origin"
+                    className="w-full h-48 rounded-lg border border-[#1B2B3A]/10 bg-white"
+                    title="Streaming preview"
+                  />
                 </div>
               )}
 
