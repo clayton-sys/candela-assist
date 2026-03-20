@@ -15,6 +15,30 @@ function parseTextToArray(text: string | null): string[] {
     .filter((line) => line.length > 0);
 }
 
+// TEMPORARY: bridges quantitative_data until Add Data page writes to program_data_points
+function parseQuantitativeData(text: string | null): MetricItem[] {
+  if (!text || text.trim() === "") return [];
+  return text
+    .split("\n")
+    .map((line) => line.replace(/^[-•*]\s*/, "").trim())
+    .filter((line) => line.length > 0)
+    .map((line, index) => {
+      // Try to split "Label: Value" or "Value Label" patterns
+      const colonMatch = line.match(/^(.+?):\s*(.+)$/);
+      const label = colonMatch ? colonMatch[1].trim() : `Metric ${index + 1}`;
+      const value = colonMatch ? colonMatch[2].trim() : line;
+      return {
+        id: `fallback-${index}`,
+        label,
+        value,
+        unit: null,
+        is_featured: index === 0,
+        display_order: index,
+        target: null,
+      };
+    });
+}
+
 export async function assembleImpactPayload({
   orgId,
   programDataIds,
@@ -109,13 +133,19 @@ export async function assembleImpactPayload({
   const programs: ProgramPayload[] = dataRows.map((row) => {
     const program = Array.isArray(row.program) ? row.program[0] : row.program;
 
+    // TEMPORARY: fall back to parsing quantitative_data text when no program_data_points rows exist
+    const structuredMetrics = metricsMap.get(row.id) ?? [];
+    const metrics = structuredMetrics.length > 0
+      ? structuredMetrics
+      : parseQuantitativeData(row.quantitative_data);
+
     return {
       id: row.id,
       name: program?.name ?? "Unknown Program",
       description: program?.description ?? null,
       period_label: row.period_label ?? null,
       outcomes: parseTextToArray(row.outcomes),
-      metrics: metricsMap.get(row.id) ?? [],
+      metrics,
       barriers: parseTextToArray(row.barriers),
       client_voice: parseTextToArray(row.client_voice),
       change_description: row.change_description?.trim() || null,
