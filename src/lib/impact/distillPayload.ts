@@ -8,7 +8,7 @@ const DISTILL_SYSTEM =
 
 async function callDistill(userPrompt: string): Promise<string> {
   const message = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
+    model: "claude-sonnet-4-20250514",
     max_tokens: 1024,
     system: DISTILL_SYSTEM,
     messages: [{ role: "user", content: userPrompt }],
@@ -17,12 +17,19 @@ async function callDistill(userPrompt: string): Promise<string> {
   const content = message.content[0];
   const responseText = content.type === "text" ? content.text.trim() : "";
 
-  // Strip markdown code fences if Haiku wraps them despite instructions
-  const raw = responseText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+  const raw = responseText
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim();
 
-  // Validate it parses
-  JSON.parse(raw);
-  return raw;
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    // Log the first 500 chars to help debug
+    console.error('[distillPayload] JSON parse failed. Raw output (first 500):', raw.slice(0, 500));
+    throw e;
+  }
 }
 
 export async function distillForSnapshot(payload: ImpactPayload): Promise<string> {
