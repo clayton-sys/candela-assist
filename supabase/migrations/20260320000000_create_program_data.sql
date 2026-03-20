@@ -60,3 +60,18 @@ CREATE POLICY "Users can update own org testimonials"
   USING (org_id IN (SELECT org_id FROM org_users WHERE user_id = auth.uid()));
 
 CREATE INDEX IF NOT EXISTS idx_org_testimonials_org_id ON org_testimonials(org_id);
+
+-- Create program_data_points table (metric values per data entry)
+CREATE TABLE IF NOT EXISTS program_data_points (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  data_entry_id UUID NOT NULL REFERENCES program_data(id) ON DELETE CASCADE,
+  metric_id UUID NOT NULL REFERENCES program_metrics(id) ON DELETE CASCADE,
+  value TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_program_data_points_data_entry_id
+  ON program_data_points(data_entry_id);
+
+CREATE INDEX IF NOT EXISTS idx_program_data_points_metric_id
+  ON program_data_points(metric_id);

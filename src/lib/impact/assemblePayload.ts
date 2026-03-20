@@ -71,35 +71,38 @@ export async function assembleImpactPayload({
     throw new Error("No program data entries found for the provided IDs");
   }
 
-  // Query 3 — Metrics for selected data entries
-  const { data: metricRows, error: metricsError } = await supabase
-    .from("program_data_points")
-    .select("id, data_entry_id, metric_id, value, metric:program_metrics(metric_name, target, display_order, is_featured)")
-    .in("data_entry_id", programDataIds.length > 0 ? programDataIds : ["__none__"])
-    .order("metric(display_order)", { ascending: true });
-
-  if (metricsError) {
-    throw new Error(`Failed to fetch metrics: ${metricsError.message}`);
-  }
-
-  // Build metrics map by data_entry_id
+  // Query 3 — Metrics for selected data entries (non-fatal if empty)
   const metricsMap = new Map<string, MetricItem[]>();
-  for (const row of metricRows ?? []) {
-    const metric = Array.isArray(row.metric) ? row.metric[0] : row.metric;
-    if (!metric) continue;
+  try {
+    const { data: metricRows, error: metricsError } = await supabase
+      .from("program_data_points")
+      .select("id, data_entry_id, metric_id, value, metric:program_metrics(metric_name, target, display_order, is_featured)")
+      .in("data_entry_id", programDataIds.length > 0 ? programDataIds : ["__none__"])
+      .order("metric(display_order)", { ascending: true });
 
-    const entryId = row.data_entry_id;
-    if (!metricsMap.has(entryId)) metricsMap.set(entryId, []);
+    if (metricsError) {
+      throw new Error(`Failed to fetch metrics: ${metricsError.message}`);
+    }
 
-    metricsMap.get(entryId)!.push({
-      id: row.id,
-      label: metric.metric_name,
-      value: row.value,
-      unit: null,
-      is_featured: metric.is_featured ?? false,
-      display_order: metric.display_order ?? 0,
-      target: metric.target ?? null,
-    });
+    for (const row of metricRows ?? []) {
+      const metric = Array.isArray(row.metric) ? row.metric[0] : row.metric;
+      if (!metric) continue;
+
+      const entryId = row.data_entry_id;
+      if (!metricsMap.has(entryId)) metricsMap.set(entryId, []);
+
+      metricsMap.get(entryId)!.push({
+        id: row.id,
+        label: metric.metric_name,
+        value: row.value,
+        unit: null,
+        is_featured: metric.is_featured ?? false,
+        display_order: metric.display_order ?? 0,
+        target: metric.target ?? null,
+      });
+    }
+  } catch {
+    // Table may not exist yet or no rows — programs will have metrics: []
   }
 
   // Assemble program payloads
