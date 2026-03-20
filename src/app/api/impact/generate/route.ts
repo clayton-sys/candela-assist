@@ -121,18 +121,37 @@ RULES: Clean, minimal, print-ready. Light background. No JavaScript. Should look
     impact_command_center: `AUDIENCE: Funders, board members. Context: live meeting, pulled up on a laptop during a conversation. Job: walk a funder through the full program landscape without a deck.
 
 REQUIRED STRUCTURE — three interactive levels:
-LEVEL 1 (default view): D3.js force simulation constellation on a dark Midnight Ink canvas. Each program node is an SVG circle (Cerulean #3A6B8A fill, 60px radius) displaying program name as SVG <text> element centered with dominant-baseline: middle and text-anchor: middle. Nodes connect to a central hub circle (org logo as SVG <image> if present, else styled org initials). Hover on a node: expand radius to 72px, show one-line description from programs[n].description in a tooltip div positioned near the node. Period selector dropdown top-right.
-LEVEL 2 (click a node): Selected node data populates a detail panel that covers most of the screen. Other nodes dim to 30% opacity. Detail panel contains: program name header, metrics grid (value large + label small + target if present — no fixed heights on metric cards), outcomes paragraph, client voice pull quote. "← Back to all programs" button top-left. Clicking back restores Level 1.
-LEVEL 3 (toggle): "See all programs" button switches view to side-by-side card grid showing all programs for selected period. Same ⚠ flag rules apply.
+LEVEL 1 (default view): D3.js force simulation constellation on a dark canvas. Each program node is an SVG <circle> (60px radius) displaying program name as an SVG <text> element centered with dominant-baseline: middle and text-anchor: middle. Nodes connect to a central hub circle with lines. Hover on a node: expand radius to 72px, show one-line description from programs[n].description in a tooltip div. Period selector dropdown top-right corner.
+LEVEL 2 (click a node): Clicked node populates a detail panel covering most of the screen. Other nodes dim to 30% opacity. Detail panel contains: program name header, metrics grid (value large + label small + target if present — min-height on cards, never fixed height), outcomes paragraph, client voice pull quote. "← Back to all programs" button top-left. Clicking back restores Level 1.
+LEVEL 3 (toggle): "See all programs" button switches to side-by-side card grid showing all programs for selected period. Same ⚠ flag rules apply.
 
 D3.js SETUP:
 Load via CDN in <head>: <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-Use d3.forceSimulation() for Level 1 constellation with: d3.forceManyBody() for repulsion, d3.forceCenter() anchored to SVG center, d3.forceCollide() with radius 80px to prevent overlap.
+Use d3.forceSimulation() for Level 1 with: d3.forceManyBody() for repulsion, d3.forceCenter() anchored to SVG center, d3.forceCollide() with radius 80px to prevent node overlap.
 Render nodes as SVG <circle> elements inside a positioned <svg> that fills the canvas.
-Node click handlers: use d3 .on("click") to update a separate HTML detail panel outside the SVG — do not use position: absolute for detail panels.
-Text labels on nodes: SVG <text> elements only — never absolutely positioned HTML elements over the SVG.
+Node click handlers: use d3 .on("click") to update a separate HTML detail panel outside the SVG.
+Text labels: SVG <text> elements only — never absolutely positioned HTML elements overlaid on the SVG.
+Initialize D3 simulation inside a DOMContentLoaded event listener.
 
-RULES: Full dark mode. Midnight Ink canvas (#1B2B3A), Cerulean nodes (#3A6B8A), Solar Gold active/selected state (#E9C03A), Warm Stone text (#EDE8DE). All JS inline in the HTML document. Initialize D3 simulation after DOMContentLoaded.`,
+VISUAL CRAFT — these details are what separate a designed artifact from a wireframe:
+
+CANVAS: Background must be a CSS radial-gradient, not a flat color — center slightly lighter (#1e3448) fading to deep navy (#0d1a26) at edges. Creates the sense the constellation floats in space.
+
+NODE DESIGN: Each program node must use an SVG <radialGradient> defined in <defs> — top-left highlight (#3a7fa8 at 0%) fading to base Cerulean (#3A6B8A at 100%). Add SVG filter drop-shadow: color #1a4a6b, stdDeviation 8. Gives nodes physical depth.
+
+NODE HOVER STATE: On hover, render a second outer ring — SVG <circle> at radius+16px, stroke Solar Gold (#E9C03A), stroke-opacity 0.4, stroke-width 1px, fill none. Animate via CSS transition on stroke-opacity 0→0.4 over 200ms.
+
+CONNECTION LINES: Use SVG <linearGradient> on each line — Solar Gold (#E9C03A) at 8% opacity at the hub end, fading to transparent at the node end. stroke-width 1.5px. Creates an energy-flow feel rather than mechanical connectors.
+
+HUB NODE: Center hub is 72px radius. If org.logo_url is present: SVG <image> clipped to circle via <clipPath>. If no logo: org initials (first letter of each word, max 2 characters) in Cormorant Garamond 28px Warm Stone, centered with SVG <text>. Hub must have: (1) radial gradient fill from Cerulean to deep navy, (2) outer ring at radius+12px in Solar Gold at 30% opacity, (3) a slow CSS keyframe pulse on the outer ring — scale 1→1.08→1 over 3 seconds, infinite, ease-in-out. This is the heartbeat of the constellation.
+
+SOLAR FLARE: Every 25 seconds, a ripple animates outward from the hub — an additional SVG <circle> starting at radius 72px, animating to radius 140px, opacity fading 0.6→0 over 1.2 seconds ease-out. Use setTimeout loop. Cancel and resume the timeout when a node is clicked and when the user returns to Level 1.
+
+NODE TEXT: Render each program name twice as SVG <text> elements stacked: first in #0d1a26 at 60% opacity offset 0px/1px (shadow layer), second in Warm Stone (#EDE8DE) at full opacity (visible layer). DM Sans 12px, font-weight 500. Truncate names longer than 18 characters with ellipsis.
+
+LEVEL 2 DETAIL PANEL: Slides in from the right — CSS transform: translateX(100%)→translateX(0), transition 350ms cubic-bezier(0.16, 1, 0.3, 1). Panel background: linear-gradient(135deg, #1a2f42 0%, #0d1a26 100%). Top border: 2px solid Solar Gold (#E9C03A). Metric cards inside panel: background rgba(255,255,255,0.04), no borders, min-height not fixed height, padding 16px.
+
+RULES: Full dark mode throughout. Midnight Ink canvas (#1B2B3A base), Cerulean nodes (#3A6B8A), Solar Gold active/selected (#E9C03A), Warm Stone text (#EDE8DE). All JS inline in the HTML document. Never use position: absolute for text labels or detail panels — SVG text for node labels, CSS transform for panel transitions.`,
 
     story_view: `AUDIENCE: Donors, board, general public. Context: shared link, annual report replacement, campaign page. Job: take someone on a journey through the org's impact — emotionally and evidentially.
 
