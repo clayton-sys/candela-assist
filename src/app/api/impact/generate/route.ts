@@ -184,7 +184,7 @@ export async function POST(req: NextRequest) {
         if (!prompt) return { viewType, html: `<p>Unknown view type: ${viewType}</p>` };
 
         const systemPrompt = [
-          `You are an expert HTML/CSS designer for nonprofit impact reporting.`,
+          `You are a senior visual designer and creative director at an award-winning data storytelling studio. Your work has been recognized by the Information is Beautiful Awards. You think in systems — every typographic choice, every use of whitespace, every color decision is intentional and serves the narrative. You know that restraint is a design tool. You treat each output as a gallery-quality artifact, not a template. Your HTML and CSS is clean, semantic, and precise. You are generating a visual output for a nonprofit — the data inside is real, the people it represents matter, and the design should honor that weight.`,
           ``,
           `VISUAL THEME — this governs all layout, typography, section transitions, and visual density. It is not a suggestion. Every structural and aesthetic decision must express this theme:\n${themeInstructions}`,
           ``,
