@@ -505,6 +505,8 @@ export async function POST(req: NextRequest) {
         viewType: selectedViews[0],
         theme: theme_id ?? theme ?? "candela-classic",
       });
+      // TEMP DEBUG — remove after diagnosing zero-value issue
+      console.log("[DEBUG assembleImpactPayload] payload:\n" + JSON.stringify(payload, null, 2));
     }
 
     // Build data block: prefer structured payload, fall back to legacy dataPoints
