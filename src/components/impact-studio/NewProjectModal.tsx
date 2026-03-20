@@ -510,6 +510,8 @@ export default function NewProjectModal({
           resolvedPrimary,
           resolvedAccent,
           layout: "constellation",
+          programDataIds: selectedDataIds,
+          orgId,
         }),
       });
 

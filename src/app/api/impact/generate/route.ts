@@ -3,6 +3,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/ratelimit";
 import { getThemeInstructions } from "@/lib/themes";
+import { assembleImpactPayload } from "@/lib/impact/assemblePayload";
+import type { ImpactPayload } from "@/lib/types/impact-payload";
 
 export const dynamic = "force-dynamic";
 
@@ -145,6 +147,8 @@ export async function POST(req: NextRequest) {
       resolvedPrimary,
       resolvedAccent,
       layout,
+      programDataIds,
+      orgId,
     } = body as {
       dataPoints: DataPoint[];
       selectedViews: string[];
@@ -153,6 +157,8 @@ export async function POST(req: NextRequest) {
       resolvedPrimary?: string;
       resolvedAccent?: string;
       layout?: string;
+      programDataIds?: string[];
+      orgId?: string;
     };
 
     // Use resolved colors from client if provided, otherwise fall back to brand kit
@@ -163,16 +169,51 @@ export async function POST(req: NextRequest) {
     const identityDirective = buildIdentityDirective(brand);
     const prompts = viewPrompts();
 
-    if (!dataPoints?.length || !selectedViews?.length) {
+    if (!selectedViews?.length) {
       return NextResponse.json(
-        { error: "dataPoints and selectedViews are required" },
+        { error: "selectedViews is required" },
         { status: 400 }
       );
     }
 
-    const dataContext = dataPoints
-      .map((dp) => `- ${dp.label}: ${dp.value} (${dp.category})`)
-      .join("\n");
+    // Assemble structured payload if programDataIds provided (new path)
+    let payload: ImpactPayload | null = null;
+    const resolvedOrgId = orgId ?? orgUser?.org_id;
+    if (programDataIds?.length && resolvedOrgId) {
+      payload = await assembleImpactPayload({
+        orgId: resolvedOrgId,
+        programDataIds,
+        viewType: selectedViews[0],
+        theme: theme_id ?? theme ?? "candela-classic",
+      });
+    }
+
+    // Build data block: prefer structured payload, fall back to legacy dataPoints
+    let dataBlock: string;
+    if (payload) {
+      dataBlock = `Here is the complete structured program data for this output. Use ONLY the data provided — do not fabricate any metric values, outcome descriptions, client quotes, or program names not present here.
+
+<program_data>
+${JSON.stringify(payload, null, 2)}
+</program_data>
+
+REQUIRED flag behavior — these rules override all other instructions:
+- programs[n].outcomes is empty array → render visible ⚠ block: "No outcomes entered for [program name] — add outcomes in your Data Area"
+- programs[n].metrics is empty array → render visible ⚠ block: "No metrics entered for [program name]"
+- programs[n].client_voice is empty array → render visible ⚠ block: "No client quotes entered for [program name] — add quotes in your Data Area"
+- org_testimonials is empty array (Story View only) → render visible ⚠ block: "No journey testimonials entered — add one in your Data Area"`;
+    } else if (dataPoints?.length) {
+      // Legacy fallback: flat DataPoint[] from client
+      const dataContext = dataPoints
+        .map((dp) => `- ${dp.label}: ${dp.value} (${dp.category})`)
+        .join("\n");
+      dataBlock = `Data Points:\n${dataContext}`;
+    } else {
+      return NextResponse.json(
+        { error: "Either programDataIds or dataPoints is required" },
+        { status: 400 }
+      );
+    }
 
     // Resolve theme instructions
     const themeInstructions = getThemeInstructions(theme_id ?? theme ?? "candela-classic");
@@ -221,7 +262,9 @@ NEVER DO THESE:
           ``,
           `Return ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html>.`,
         ].join("\n");
-        const userPrompt = `${prompt}\n\nData Points:\n${dataContext}`;
+        const userPrompt = payload
+          ? `${prompt}\n\n${dataBlock}\n\nGenerate a complete, self-contained HTML document for:\n- view_type: ${viewType}\n- theme: ${theme_id ?? theme ?? "candela-classic"}`
+          : `${prompt}\n\n${dataBlock}`;
 
         const message = await client.messages.create({
           model: "claude-sonnet-4-20250514",
