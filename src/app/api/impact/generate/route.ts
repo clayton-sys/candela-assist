@@ -10,6 +10,27 @@ export const dynamic = "force-dynamic";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+async function inlineExternalScripts(html: string): Promise<string> {
+  const d3CdnPattern = /<script[^>]*cdnjs\.cloudflare\.com\/ajax\/libs\/d3\/[^>]*><\/script>/gi;
+  if (!d3CdnPattern.test(html)) return html;
+
+  try {
+    const res = await fetch("https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js");
+    if (!res.ok) {
+      console.warn("[inlineExternalScripts] D3 CDN fetch failed, keeping CDN link");
+      return html;
+    }
+    const d3Source = await res.text();
+    return html.replace(
+      /<script[^>]*cdnjs\.cloudflare\.com\/ajax\/libs\/d3\/[^>]*><\/script>/gi,
+      `<script>${d3Source}</script>`
+    );
+  } catch (err) {
+    console.warn("[inlineExternalScripts] D3 inline failed:", err);
+    return html;
+  }
+}
+
 interface DataPoint {
   id: string;
   label: string;
@@ -546,8 +567,9 @@ REQUIRED flag behavior — these rules override all other instructions:
             .single();
 
           if (cachedView?.output_html) {
+            const finalCachedHtml = await inlineExternalScripts(cachedView.output_html);
             return new Response(
-              JSON.stringify({ outputs: { [cacheViewType]: cachedView.output_html }, cached: true }),
+              JSON.stringify({ outputs: { [cacheViewType]: finalCachedHtml }, cached: true }),
               { headers: { "Content-Type": "application/json", "X-Cache": "HIT" } }
             );
           }
@@ -693,6 +715,9 @@ Structure and decoration:
             const fenceMatch = fullHtml.match(/```(?:html)?\s*([\s\S]*?)```/);
             if (fenceMatch) fullHtml = fenceMatch[1].trim();
 
+            // Inline D3 from CDN so it works in sandboxed iframes
+            fullHtml = await inlineExternalScripts(fullHtml);
+
             // Send done signal with complete HTML
             controller.enqueue(
               encoder.encode(`data: ${JSON.stringify({ done: true, html: fullHtml })}\n\n`)
@@ -749,6 +774,7 @@ Structure and decoration:
         let html = content.type === "text" ? content.text.trim() : "";
         const fenceMatch = html.match(/```(?:html)?\s*([\s\S]*?)```/);
         if (fenceMatch) html = fenceMatch[1].trim();
+        html = await inlineExternalScripts(html);
         return { viewType: vt, html };
       })
     );
