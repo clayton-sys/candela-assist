@@ -76,17 +76,82 @@ function buildIdentityDirective(b: BrandKit): string {
 
 function viewPrompts(): Record<string, string> {
   return {
-    impact_snapshot: `Generate a single-viewport impact summary page. Required sections: header with org logo badge and report title, hero stat with bold typography, program card grid showing outcomes per program, client voice quote, closing agency narrative. Audience: board members, community stakeholders, quick-read funders. Font: Cormorant Garamond for headings, DM Sans for body.`,
+    impact_snapshot: `AUDIENCE: Funders, donors, board members. Context: email attachment, printed leave-behind, quick share link. Job: communicate what the org accomplished in under 90 seconds.
 
-    funder_narrative: `Generate a longform funder report. Required sections: header with org logo badge and descriptive report title, agency narrative introduction, per-program sections each containing outcome narrative, quantitative metrics display, client voice quote, barriers and context, what changed and forward-looking notes, closing statement, footer with attribution. Audience: funders and community stakeholders. Font: Cormorant Garamond for headings, DM Sans for body.`,
+REQUIRED STRUCTURE — render these sections in this order, nothing else:
+1. HEADER — org logo (if present) top-left. Period label top-right. No large title.
+2. HERO STAT — the featured metric (first metric where is_featured=true, else programs[0].metrics[0]). Number at 140px–180px Cormorant Garamond. Label in 11px uppercase DM Sans below. No box or border around it.
+3. HERO QUOTE — programs[0].client_voice[0] if present. Full-bleed left-border treatment. Solar Gold (#E9C03A) left border 4px. Quote at 1.6rem italic Cormorant Garamond. Attribution 11px uppercase DM Sans.
+4. PROGRAM GRID — one card per program in programs[]. Each card: program name (Cormorant Garamond 22px), one outcome sentence (DM Sans 14px, from outcomes[0]), one metric value + label. Cards must vary in size — use CSS Grid, mix one 2-column-span feature card with single-column supporting cards. Never equal heights — use min-height, let content expand.
+5. FOOTER — org mission small DM Sans. "Powered by Candela · candela.education" unless suppressed.
 
-    website_embed: `Generate an embeddable widget. Required sections: 3 featured stat cards, rotating client quote cycling every 6 seconds, small footer with org attribution. Must fit a standard website sidebar at 400px width. No header. Audience: website visitors. Font: Cormorant Garamond for headings, DM Sans for body.`,
+RULES: Single viewport — no scrolling. Everything visible at once. PDF export intent — no JavaScript. CSS Grid with named template areas. Background: Midnight Ink (#1B2B3A). Text: Warm Stone (#EDE8DE). Accent: Solar Gold (#E9C03A).`,
 
-    program_profile: `Generate a single-program profile card. Required sections: program name, one large centered headline stat, short AI-drafted narrative paragraph (2-3 sentences), client voice quote, small footer with org attribution. Portrait orientation. Audience: donors, social media, event materials. Font: Cormorant Garamond for headings, DM Sans for body.`,
+    funder_narrative: `AUDIENCE: Grant funders. Context: formal document, sent as PDF or shared as a link. Job: tell the full program story in funder language — outcomes, barriers, what changed.
 
-    impact_command_center: `Generate an interactive impact dashboard. Required sections: agency header with logo, program navigation showing all programs by name, per-program detail panel with metrics, outcomes narrative, and client voice quote, period label. Include a toggle to view all programs side by side. Full dark canvas layout. Audience: leadership, board, sophisticated funders. Font: Cormorant Garamond for headings, DM Sans for body.`,
+REQUIRED STRUCTURE — render these sections in this order:
+1. COVER — org name in Cormorant Garamond display size. Report period. Logo if present. One-line mission statement. Cerulean (#3A6B8A) accent line beneath org name.
+2. AGENCY NARRATIVE — 2–3 paragraphs AI-generated from org.mission + program descriptions. Theory of change, population served, overall approach. Prose only — no bullet points.
+3. PER-PROGRAM SECTIONS — one section per item in programs[]. Each contains in this order: program name as section header (Cormorant Garamond 32px), outcomes narrative paragraph (prose synthesized from outcomes array — not a bulleted list), 2–3 metric callout cards inline (value large, label small, background color variation only — no borders), barriers paragraph (from barriers array), client voice pull quote (Solar Gold left border 4px, full bleed treatment, quote at 1.6rem), what changed paragraph (from change_description). Cerulean horizontal rule between program sections.
+4. CLOSING — aggregate outcomes summary sentence. One forward-looking sentence. Org logo small.
+5. FOOTER — "Powered by Candela · candela.education" unless suppressed.
 
-    story_view: `Generate a scrollytelling impact narrative. Required sections: full-viewport opening with agency name and period, per-program sequence sections each with program name, description, key metrics with count-up animation, and client voice quote, closing agency outcomes section. Each section should be 100vh. Audience: donors, community, gala attendees. Font: Cormorant Garamond for headings, DM Sans for body.`,
+RULES: Scrollable long-form document. Warm Stone (#EDE8DE) background for print-friendliness. Max-width 800px centered. Line height 1.8 for all body text. No JavaScript.`,
+
+    website_embed: `AUDIENCE: General public, website visitors. Context: iframe embed on org's own website, always visible. Job: show measurable work to anyone landing on the site.
+
+REQUIRED STRUCTURE:
+1. STAT BAR — exactly 3 metrics from programs[0].metrics (featured first, then by display_order). Each stat: large number (Cormorant Garamond 64px), label (DM Sans 12px uppercase), subtle progress bar toward target if target is not null.
+2. ROTATING QUOTE — one client quote displayed at a time from programs[0].client_voice, cycling every 6 seconds via JavaScript setInterval. CSS opacity fade transition between quotes. Show first quote immediately on load.
+3. FOOTER — org logo small left if present. "Powered by Candela · candela.education" right. 11px DM Sans.
+
+RULES: Fixed width 400px. No header. Uses org.brand_colors from payload — NOT Candela brand colors. If brand_colors fields are null, fall back to Midnight Ink (#1B2B3A) background and Solar Gold (#E9C03A) accent. Must function as a standalone iframe. JavaScript allowed for quote rotation only.`,
+
+    program_profile: `AUDIENCE: Funders, donors, general public. Context: shareable link, PDF, printed handout. Job: one program, one number that stops you, then you keep reading.
+
+REQUIRED STRUCTURE — portrait orientation, single program (use programs[0]):
+1. PROGRAM NAME — Cormorant Garamond large. Top of page. Not full-bleed.
+2. HERO STAT — featured metric value. Enormous, centered. 160px–200px Cormorant Garamond. The number dominates the top third of the page. Short label beneath in 12px uppercase DM Sans.
+3. NARRATIVE — 3–5 sentence paragraph AI-generated from programs[0].description + programs[0].outcomes. What the number means in human terms. DM Sans 16px, line height 1.8. Never fabricate — if outcomes is empty array, show ⚠ flag instead of narrative.
+4. CLIENT QUOTE — if programs[0].client_voice is not empty. Large opening quote mark (4rem+ Cormorant Garamond in accent color). Quote text 1.6rem. Attribution 11px uppercase.
+5. FOOTER — org logo. Period label. "Powered by Candela · candela.education" unless suppressed.
+
+RULES: Clean, minimal, print-ready. Light background. No JavaScript. Should look designed, not generated.`,
+
+    impact_command_center: `AUDIENCE: Funders, board members. Context: live meeting, pulled up on a laptop during a conversation. Job: walk a funder through the full program landscape without a deck.
+
+REQUIRED STRUCTURE — three interactive levels:
+LEVEL 1 (default view): D3.js force simulation constellation on a dark Midnight Ink canvas. Each program node is an SVG circle (Cerulean #3A6B8A fill, 60px radius) displaying program name as SVG <text> element centered with dominant-baseline: middle and text-anchor: middle. Nodes connect to a central hub circle (org logo as SVG <image> if present, else styled org initials). Hover on a node: expand radius to 72px, show one-line description from programs[n].description in a tooltip div positioned near the node. Period selector dropdown top-right.
+LEVEL 2 (click a node): Selected node data populates a detail panel that covers most of the screen. Other nodes dim to 30% opacity. Detail panel contains: program name header, metrics grid (value large + label small + target if present — no fixed heights on metric cards), outcomes paragraph, client voice pull quote. "← Back to all programs" button top-left. Clicking back restores Level 1.
+LEVEL 3 (toggle): "See all programs" button switches view to side-by-side card grid showing all programs for selected period. Same ⚠ flag rules apply.
+
+D3.js SETUP:
+Load via CDN in <head>: <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+Use d3.forceSimulation() for Level 1 constellation with: d3.forceManyBody() for repulsion, d3.forceCenter() anchored to SVG center, d3.forceCollide() with radius 80px to prevent overlap.
+Render nodes as SVG <circle> elements inside a positioned <svg> that fills the canvas.
+Node click handlers: use d3 .on("click") to update a separate HTML detail panel outside the SVG — do not use position: absolute for detail panels.
+Text labels on nodes: SVG <text> elements only — never absolutely positioned HTML elements over the SVG.
+
+RULES: Full dark mode. Midnight Ink canvas (#1B2B3A), Cerulean nodes (#3A6B8A), Solar Gold active/selected state (#E9C03A), Warm Stone text (#EDE8DE). All JS inline in the HTML document. Initialize D3 simulation after DOMContentLoaded.`,
+
+    story_view: `AUDIENCE: Donors, board, general public. Context: shared link, annual report replacement, campaign page. Job: take someone on a journey through the org's impact — emotionally and evidentially.
+
+REQUIRED STRUCTURE — scroll-triggered narrative, each section exactly 100vh height:
+SECTION 1 — INTRO: Full viewport. Org name (Cormorant Garamond display), mission statement (DM Sans 18px), reporting period. Fade-in on load. Midnight Ink (#1B2B3A) background.
+SECTIONS 2 through N — one section per item in programs[]. Within each section, content animates in on scroll using Intersection Observer in this exact sequence: (1) program name fades in via opacity 0→1 CSS transition, (2) program description fades in 300ms later via CSS transition-delay, (3) outcomes text fades in, (4) each metric counts up from 0 to its value using a vanilla JS counter (requestAnimationFrame loop), (5) client voice quote slides in from left via transform: translateX(-40px)→translateX(0). Alternate backgrounds: Midnight Ink for odd-numbered program sections, Warm Stone (#EDE8DE) for even-numbered.
+JOURNEY TESTIMONIAL SECTION — full viewport, Midnight Ink background. Single centered quote from org_testimonials[0].quote_text if org_testimonials is not empty. Cormorant Garamond 2.4rem centered. Attribution 12px uppercase DM Sans. If org_testimonials is empty → full-width ⚠ block: "No journey testimonials entered — add one in your Data Area."
+CLOSING SECTION — aggregate outcomes, one final statement, org logo, "Powered by Candela · candela.education" unless suppressed.
+
+ANIMATION RULES — violations cause broken layout:
+- All animations must use CSS transitions triggered by adding a class via IntersectionObserver — never setTimeout chains
+- Sliding elements must use transform: translateX/translateY — never position: absolute on animated elements
+- Metric counter animation: use requestAnimationFrame, update textContent on each frame, stop when value reached
+- Never animate an element that has overflow: hidden on its parent
+
+D3.js: Available via CDN if needed for an inline data visualization within a program section. Only load it if genuinely used — do not load for animations or counters.
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+
+RULES: Solar Gold (#E9C03A) for metric numbers. Period filter applies to program sections only — testimonial section is not period-filtered.`,
   };
 }
 
@@ -248,13 +313,27 @@ CARDS: If used, cards must vary in size. No uniform card grids. Mix one large fe
 
 WHITESPACE: Be generous. Minimum 80px vertical padding per section.
 
-NEVER DO THESE:
+NEVER DO THESE — violations will produce broken output:
+Layout and positioning:
+- position: absolute on any text element unless inside an explicitly bounded relative container with defined width AND height
+- z-index stacking that places text on top of a background image or gradient without a semi-transparent overlay guaranteeing contrast
+- Fixed pixel heights on any card, panel, or content block — use min-height only, never height: Npx on containers that hold text
+- overflow: hidden on any container that holds dynamic text content
+- CSS Grid or Flexbox children set to fixed heights — let content drive height always
+
+Typography:
+- Font sizes between 16px and 28px for anything displayed as a headline
+- Line height below 1.5 for any paragraph or body text
+- Text directly on a background color without verifying contrast ratio mentally first
+- More than 3 distinct font sizes in a single card or panel
+
+Structure:
 - Equal-height card grids
 - Horizontal rule dividers
 - Borders around data cards or stat boxes
 - Centered text for body copy (headings only)
-- Font sizes between 16px and 28px for anything displayed as a headline
-- Flat single-color backgrounds with no variation across the full page`,
+- Flat single-color backgrounds with no variation across the full page
+- Placeholder, lorem ipsum, or fabricated content for any field — use ⚠ flags instead`,
           ``,
           colorDirective,
           ``,
