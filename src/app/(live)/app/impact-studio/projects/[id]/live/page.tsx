@@ -54,13 +54,13 @@ export default async function LivePage({
   if (latestRun) {
     const { data: view } = await supabase
       .from("generated_views")
-      .select("output_data, view_type")
+      .select("output_html, view_type")
       .eq("run_id", latestRun.id)
       .limit(1)
       .single();
 
     if (view) {
-      outputData = view.output_data ?? null;
+      outputData = view.output_html ?? null;
       viewType = view.view_type ?? null;
     }
   }
