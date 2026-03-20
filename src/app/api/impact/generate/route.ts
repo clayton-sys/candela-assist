@@ -4,32 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/ratelimit";
 import { getThemeInstructions } from "@/lib/themes";
 import { assembleImpactPayload } from "@/lib/impact/assemblePayload";
+import { distillForSnapshot, distillForStoryView, distillForICC, distillForBoardReport, distillForStaffDashboard, distillForImpactJourney, distillForTerminal } from "@/lib/impact/distillPayload";
 import type { ImpactPayload } from "@/lib/types/impact-payload";
 
 export const dynamic = "force-dynamic";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-async function inlineExternalScripts(html: string): Promise<string> {
-  const d3CdnPattern = /<script[^>]*cdnjs\.cloudflare\.com\/ajax\/libs\/d3\/[^>]*><\/script>/gi;
-  if (!d3CdnPattern.test(html)) return html;
-
-  try {
-    const res = await fetch("https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js");
-    if (!res.ok) {
-      console.warn("[inlineExternalScripts] D3 CDN fetch failed, keeping CDN link");
-      return html;
-    }
-    const d3Source = await res.text();
-    return html.replace(
-      /<script[^>]*cdnjs\.cloudflare\.com\/ajax\/libs\/d3\/[^>]*><\/script>/gi,
-      `<script>${d3Source}</script>`
-    );
-  } catch (err) {
-    console.warn("[inlineExternalScripts] D3 inline failed:", err);
-    return html;
-  }
-}
 
 interface DataPoint {
   id: string;
@@ -404,6 +384,8 @@ GLOBAL PAGE RULES:
 - Sections must have position: relative and overflow: visible — never overflow: hidden on section containers
 - D3.js not needed for this view — vanilla JS only
 - Period filter: applies to all program sections. Testimonial section is not period-filtered.`,
+
+    impact_terminal: `Build a complete Impact Terminal dashboard HTML file using the distilled data contract provided. Follow the design brief exactly. All CSS and JavaScript must be inline in a single HTML file. The program portfolio grid should be interactive — clicking a row loads that program's detail in the right panel. The ticker feed should scroll continuously. Use the ticker field for each program as its symbol. Use status_flag for colored status indicators. Use delta fields for ↑ ↓ — indicators on all metrics.`,
   };
 }
 
@@ -505,36 +487,61 @@ export async function POST(req: NextRequest) {
         viewType: selectedViews[0],
         theme: theme_id ?? theme ?? "candela-classic",
       });
-      // TEMP DEBUG — remove after diagnosing zero-value issue
-      console.log("[DEBUG assembleImpactPayload] payload:\n" + JSON.stringify(payload, null, 2));
     }
 
-    // Build data block: prefer structured payload, fall back to legacy dataPoints
-    let dataBlock: string;
-    if (payload) {
-      dataBlock = `Here is the complete structured program data for this output. Use ONLY the data provided — do not fabricate any metric values, outcome descriptions, client quotes, or program names not present here.
-
-<program_data>
-${JSON.stringify(payload, null, 2)}
-</program_data>
-
-REQUIRED flag behavior — these rules override all other instructions:
-- programs[n].outcomes is empty array → render visible ⚠ block: "No outcomes entered for [program name] — add outcomes in your Data Area"
-- programs[n].metrics is empty array → render visible ⚠ block: "No metrics entered for [program name]"
-- programs[n].client_voice is empty array → render visible ⚠ block: "No client quotes entered for [program name] — add quotes in your Data Area"
-- org_testimonials is empty array (Story View only) → render visible ⚠ block: "No journey testimonials entered — add one in your Data Area"`;
-    } else if (dataPoints?.length) {
-      // Legacy fallback: flat DataPoint[] from client
-      const dataContext = dataPoints
-        .map((dp) => `- ${dp.label}: ${dp.value} (${dp.category})`)
-        .join("\n");
-      dataBlock = `Data Points:\n${dataContext}`;
-    } else {
+    if (!payload && !dataPoints?.length) {
       return NextResponse.json(
         { error: "Either programDataIds or dataPoints is required" },
         { status: 400 }
       );
     }
+
+    // Pass 1 — Distill payload into view-specific data contract
+    let distilledData: string;
+    if (payload) {
+      const viewType = selectedViews[0];
+      try {
+        switch (viewType) {
+          case "impact_snapshot":
+            distilledData = await distillForSnapshot(payload);
+            break;
+          case "story_view":
+            distilledData = await distillForStoryView(payload);
+            break;
+          case "impact_command_center":
+            distilledData = await distillForICC(payload);
+            break;
+          case "board_report":
+            distilledData = await distillForBoardReport(payload);
+            break;
+          case "staff_dashboard":
+            distilledData = await distillForStaffDashboard(payload);
+            break;
+          case "impact_journey":
+            distilledData = await distillForImpactJourney(payload);
+            break;
+          case "impact_terminal":
+            distilledData = await distillForTerminal(payload);
+            break;
+          default:
+            distilledData = JSON.stringify(payload);
+        }
+      } catch (err) {
+        console.error("[distillPayload] error:", err);
+        distilledData = JSON.stringify(payload);
+      }
+    } else {
+      // Legacy fallback: flat DataPoint[] from client
+      const dataContext = dataPoints
+        .map((dp: DataPoint) => `- ${dp.label}: ${dp.value} (${dp.category})`)
+        .join("\n");
+      distilledData = `Data Points:\n${dataContext}`;
+    }
+
+    // Build data block for user prompt using distilled data
+    const dataBlock = payload
+      ? `Here is the distilled data contract for this output. Use ONLY the data provided — do not fabricate any metric values, outcome descriptions, client quotes, or program names not present here.\n\n<data>\n${distilledData}\n</data>`
+      : distilledData;
 
     // Resolve theme instructions
     const themeInstructions = getThemeInstructions(theme_id ?? theme ?? "candela-classic");
@@ -569,9 +576,8 @@ REQUIRED flag behavior — these rules override all other instructions:
             .single();
 
           if (cachedView?.output_html) {
-            const finalCachedHtml = await inlineExternalScripts(cachedView.output_html);
             return new Response(
-              JSON.stringify({ outputs: { [cacheViewType]: finalCachedHtml }, cached: true }),
+              JSON.stringify({ outputs: { [cacheViewType]: cachedView.output_html }, cached: true }),
               { headers: { "Content-Type": "application/json", "X-Cache": "HIT" } }
             );
           }
@@ -588,7 +594,28 @@ REQUIRED flag behavior — these rules override all other instructions:
         return NextResponse.json({ outputs: { [viewType]: `<p>Unknown view type: ${viewType}</p>` } });
       }
 
-      const systemPrompt = [
+      const terminalSystemPrompt = `You are a senior UI engineer and data visualization specialist. You build Bloomberg Terminal-style dashboards for high-stakes data environments. Your output is always a single complete HTML file with all CSS and JavaScript inline.
+
+DESIGN BRIEF — IMPACT TERMINAL:
+- Background: #0a0e1a (near-black). Never use white backgrounds.
+- Accent colors: #00ff88 (positive/on-track), #ff4444 (negative/alert), #ffaa00 (at-risk/warning), #4499ff (neutral data), #ffffff (primary text), #8899aa (secondary text)
+- ALL numbers use monospace font: font-family: 'JetBrains Mono', 'Courier New', monospace
+- Layout: fixed multi-panel grid filling the full viewport. No page scroll. Panels are: top header bar, program portfolio grid (left), selected program detail panel (right), ticker feed bar (bottom)
+- Dividers: 1px solid rgba(255,255,255,0.08) between all panels
+- NO animations except: slow horizontal ticker scroll at bottom (CSS animation), subtle cursor blink on active selection
+- Status indicators: colored dot + text label (● ON_TRACK in green, ● AT_RISK in amber, ● ALERT in red)
+- Delta indicators on metrics: ↑ in green if UP, ↓ in red if DOWN, — in amber if FLAT
+- Program portfolio grid: each program is a compact row showing ticker, name, status dot, headline metric value and delta
+- Clicking a program row loads its detail in the right panel — all metrics, outcome lines, barrier, quote
+- Detail panel header shows program name, ticker, status, and all metrics in a dense table format
+- Ticker feed at bottom: slow-scrolling single line of data points separated by | dividers
+- NEVER: gradients, border-radius over 4px, drop shadows, decorative icons, soft pastels, any element that looks like a consumer app
+- Typography: uppercase labels, tight letter-spacing, small font sizes (11-13px for data, 10px for labels)
+- Feels like a live trading terminal — serious, dense, trustworthy, every pixel earns its place
+
+Return ONLY the complete HTML document. No markdown, no explanation, no code fences. Start with <!DOCTYPE html>.`;
+
+      const systemPrompt = viewType === "impact_terminal" ? terminalSystemPrompt : [
           `You are the creative director at a boutique studio that charges $85,000 for a nonprofit annual report. Your clients include community foundations, national advocacy organizations, and civil rights nonprofits. Your work has been featured in Communication Arts, shortlisted for D&AD, and cited in the Information is Beautiful Awards. You have spent 15 years perfecting the art of making data feel human.
 Your philosophy: restraint is power, whitespace is an argument, and every typographic decision either earns its place or gets cut. You do not use templates. You do not produce generic output. Every layout decision is intentional.
 You are generating a visual artifact for a real nonprofit. The data inside represents real people — participants, clients, community members — whose lives were changed by this organization's work. The design must honor that weight while being visually stunning enough to open doors, secure funding, and make a funder lean forward in their seat.
@@ -684,7 +711,16 @@ Structure and decoration:
         ? `${prompt}\n\n${dataBlock}\n\nGenerate a complete, self-contained HTML document for:\n- view_type: ${viewType}\n- theme: ${theme_id ?? theme ?? "candela-classic"}`
         : `${prompt}\n\n${dataBlock}`;
 
-      const maxTokens = (viewType === "impact_command_center" || viewType === "story_view") ? 10000 : 8192;
+      const maxTokensMap: Record<string, number> = {
+        impact_snapshot: 6000,
+        story_view: 10000,
+        impact_command_center: 16000,
+        board_report: 8000,
+        staff_dashboard: 8000,
+        impact_journey: 10000,
+        impact_terminal: 14000,
+      };
+      const maxTokens = maxTokensMap[viewType] ?? 8192;
 
       const stream = client.messages.stream({
         model: "claude-sonnet-4-20250514",
@@ -716,9 +752,6 @@ Structure and decoration:
             // Strip code fences if present
             const fenceMatch = fullHtml.match(/```(?:html)?\s*([\s\S]*?)```/);
             if (fenceMatch) fullHtml = fenceMatch[1].trim();
-
-            // Inline D3 from CDN so it works in sandboxed iframes
-            fullHtml = await inlineExternalScripts(fullHtml);
 
             // Send done signal with complete HTML
             controller.enqueue(
@@ -776,7 +809,6 @@ Structure and decoration:
         let html = content.type === "text" ? content.text.trim() : "";
         const fenceMatch = html.match(/```(?:html)?\s*([\s\S]*?)```/);
         if (fenceMatch) html = fenceMatch[1].trim();
-        html = await inlineExternalScripts(html);
         return { viewType: vt, html };
       })
     );

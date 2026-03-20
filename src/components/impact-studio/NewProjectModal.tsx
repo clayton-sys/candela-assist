@@ -37,7 +37,7 @@ interface BrandKit {
 
 // Canonical view types — used identically in UI, API, and DB
 type DocumentViewType = "impact_snapshot" | "funder_narrative" | "website_embed" | "program_profile";
-type InteractiveViewType = "impact_command_center" | "story_view";
+type InteractiveViewType = "impact_command_center" | "story_view" | "impact_terminal";
 type SelectedViewType = DocumentViewType | InteractiveViewType;
 type SelectedMode = "narrative" | "interactive";
 
@@ -82,6 +82,11 @@ const INTERACTIVE_VIEWS: {
     type: "story_view",
     name: "Story View",
     description: "Scrollytelling narrative journey through program impact",
+  },
+  {
+    type: "impact_terminal",
+    name: "Impact Terminal",
+    description: "Bloomberg-style data terminal. Dense, functional, built for serious analysis.",
   },
 ];
 
