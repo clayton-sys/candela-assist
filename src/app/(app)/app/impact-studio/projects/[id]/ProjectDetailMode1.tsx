@@ -190,7 +190,7 @@ export default function ProjectDetailMode1({
           ) : (
             <div className="flex items-center justify-center h-full min-h-[400px] bg-white/50 rounded-lg border border-[#1B2B3A]/10">
               <p className="text-sm text-[#1B2B3A]/30" style={dmSans}>
-                No output generated yet. Start a new run to see results here.
+                No output generated yet. Start a new view to see results here.
               </p>
             </div>
           )}
@@ -254,7 +254,7 @@ export default function ProjectDetailMode1({
 
           {runs.length === 0 ? (
             <p className="text-xs text-[#1B2B3A]/25" style={dmSans}>
-              No runs yet.
+              No views yet.
             </p>
           ) : (
             <div className="space-y-1">

@@ -132,17 +132,17 @@ export default function ProjectDetailMode2({
         {/* Divider */}
         <hr className="my-8 border-[#1B2B3A]/10" />
 
-        {/* Run History */}
+        {/* View History */}
         <p
           className="text-[11px] font-medium text-[#1B2B3A]/40 uppercase tracking-wider mb-3"
           style={dmSans}
         >
-          Run History
+          View History
         </p>
 
         {runs.length === 0 ? (
           <p className="text-xs text-[#1B2B3A]/25" style={dmSans}>
-            No runs yet.
+            No views yet.
           </p>
         ) : (
           <div className="space-y-1 mb-6">
@@ -160,7 +160,7 @@ export default function ProjectDetailMode2({
                   style={dmSans}
                 >
                   <span className="text-[#1B2B3A]">
-                    Run {run.version_number}
+                    View {run.version_number}
                   </span>
                   <span className="text-[#1B2B3A]/30 ml-auto text-xs">
                     {timeAgo(run.created_at)}
@@ -171,7 +171,7 @@ export default function ProjectDetailMode2({
           </div>
         )}
 
-        {/* New Run button */}
+        {/* New View button */}
         <button
           onClick={() =>
             router.push(
@@ -182,7 +182,7 @@ export default function ProjectDetailMode2({
           style={dmSans}
         >
           <Plus className="w-4 h-4" />
-          New Run
+          New View
         </button>
 
         <div className="h-12" />

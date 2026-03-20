@@ -577,7 +577,7 @@ export default function NewProjectModal({
               className="text-xl font-semibold text-[#1B2B3A]"
               style={cormorant}
             >
-              {isNewRun ? "New Run" : "New Project"}
+              {isNewRun ? "New View" : "New Project"}
             </h2>
             <p
               className="text-xs text-[#1B2B3A]/40 mt-0.5"
@@ -1147,7 +1147,7 @@ export default function NewProjectModal({
                     : creating
                     ? "Creating..."
                     : isNewRun
-                    ? "Generate New Run"
+                    ? "Generate New View"
                     : "Create & Generate"}
                 </button>
               </div>
