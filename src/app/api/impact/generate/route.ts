@@ -126,70 +126,263 @@ REQUIRED STRUCTURE — portrait orientation, programs[0] only:
 
 RULES: Scrollable portrait layout. No JavaScript. PDF and print intent — use @media print to remove scroll indicator and footer. Google Fonts import.`,
 
-    impact_command_center: `AUDIENCE: Funders, board members. Context: live meeting on a laptop — the funder asks "can you show me your programs?" and this is what comes up. Job: walk a funder through the complete program landscape organically, at their own pace.
+    impact_command_center: `AUDIENCE: Funders, board members, sophisticated donors. Context: live meeting on a laptop — pulled up mid-conversation to answer "tell me about your programs." Job: let a funder explore every piece of data the org has at their own pace, drilling as deep as they want.
 
-DESIGN INTENTION: This is the piece that replaces the PowerPoint deck. It should feel like mission control — authoritative, alive, purposeful. The constellation is not decoration. It is the argument that this organization's programs are connected, cohesive, and part of something larger. Every interaction should feel cinematic, not functional.
+DESIGN INTENTION: This is mission control. Dark canvas, living constellation, data that reveals itself on demand. Nothing is hidden because there isn't enough space — everything is accessible because the interface is intelligent. A funder who spends 5 minutes in this view should feel like they have been given a complete picture of the organization. A funder who spends 20 minutes should feel like they have been given access to the organization's soul.
 
-REQUIRED STRUCTURE — three interactive levels:
+The principle: show identity first, then proof, then humanity. Every drill-down follows this sequence — who the program is for, then what the numbers say, then what a person who was changed by it has to say.
 
-LEVEL 1 (default — the constellation):
-Full-screen dark canvas. Background: radial-gradient(ellipse at 50% 45%, #1e3448 0%, #0d1a26 70%) — the center glows faintly, nodes emerge from depth.
-D3.js force simulation. Each program node: SVG <circle> radius 56px. Node fill: radial gradient defined in <defs> — top-left highlight #4a8fb8 at 0%, base Cerulean #3A6B8A at 70%, deep navy #1a3d56 at 100%. SVG filter: feDropShadow dx=0 dy=4 stdDeviation=12 flood-color=#0a1e2e flood-opacity=0.6.
-Node labels: two SVG <text> elements stacked (shadow layer: Midnight Ink 50% opacity, offset 0/1px; visible layer: Warm Stone 100% opacity). DM Sans 11px weight 500 letter-spacing 0.04em. Truncate at 16 characters. dominant-baseline: middle, text-anchor: middle.
-Central hub: SVG <circle> radius 68px. Same radial gradient as nodes but deeper. If org.logo_url: SVG <image> clipped to circle via <clipPath>, 80px × 80px. If no logo: org initials (max 2 chars) in Cormorant Garamond 32px Warm Stone centered. Hub has: outer ring at radius+14px, stroke Solar Gold 25% opacity, stroke-width 1.5px. CSS keyframe pulse on outer ring: transform scale(1) → scale(1.07) → scale(1) over 3.5s infinite ease-in-out — the heartbeat.
-Connection lines: SVG <line> elements with linearGradient stroke — Solar Gold 12% opacity at hub end, transparent at node end. stroke-width 1px.
-Solar flare: setTimeout loop every 25 seconds — SVG <circle> on hub starts at radius 68, animates to radius 160px while opacity 0.5→0 over 1.4s. CSS animation via class added and removed. Cancel and restart on interaction.
-Period selector: top-right, DM Sans 12px, Warm Stone, background rgba(255,255,255,0.06) border-radius 4px padding 8px 16px.
-Hover state on nodes: radius expands to 68px via d3 transition 200ms. Outer glow ring appears (Solar Gold 35% opacity). Tooltip div positioned near node: program description in DM Sans 13px Warm Stone, background rgba(14,26,38,0.92) backdrop-filter blur(8px) border-radius 4px padding 12px 16px border-left 2px solid Solar Gold.
+DATA COMPLETENESS MANDATE: Every field in the ImpactPayload must be accessible somewhere in this view. No data is hidden. If a program has 6 metrics, all 6 are visible. If a program has 4 outcome statements, all 4 are readable. If there are 3 client quotes, all 3 are accessible. The interface must be designed to accommodate ANY amount of data, not just a curated subset.
 
-LEVEL 2 (click a node — program detail):
-Selected node stays visible. All other nodes: opacity transition to 0.2 over 350ms. Detail panel slides in from right: transform translateX(100%)→translateX(0), transition 380ms cubic-bezier(0.16, 1, 0.3, 1). Panel covers 65% of screen right side. Panel background: linear-gradient(160deg, #1a2f42 0%, #0d1a26 100%), left border 2px solid Solar Gold.
-Panel content: program name Cormorant Garamond 42px weight 300 Warm Stone line-height 1.1. Period label 10px uppercase DM Sans Warm Stone 45% opacity. Metrics grid: CSS Grid 2 columns, auto rows, gap 16px, margin-top 32px. Each metric card: background rgba(255,255,255,0.05) border-radius 2px padding 20px 24px — min-height never fixed height. Value in Cormorant Garamond 44px Solar Gold. Label in 10px uppercase DM Sans Warm Stone 60% opacity letter-spacing 0.15em. Target if present: 10px DM Sans Warm Stone 35% opacity. Outcomes section below: "Outcomes" label in 10px uppercase DM Sans Cerulean, then DM Sans 14px Warm Stone 85% opacity line-height 1.7. Client quote: Solar Gold left border 3px, padding-left 20px, Cormorant Garamond italic 17px Warm Stone line-height 1.55. "← Back" button top-left: 11px DM Sans Warm Stone 60%, hover 100%, transition 200ms ease.
+LEVEL 1 — THE CONSTELLATION (default view, full screen):
 
-LEVEL 3 (see all programs toggle):
-"All Programs" button top-left (visible in both levels). Click transitions constellation to card grid: opacity fade 300ms. Grid: CSS Grid auto-fit columns min 280px, gap 24px, padding 64px. Same card styling as Level 2 metric cards but full program cards. Same Solar Gold left border on cards. Back to constellation button top-left.
+Canvas: full viewport, Midnight Ink with radial-gradient(ellipse at 48% 52%, #1e3448 0%, #0d1a26 75%). Subtle noise texture via CSS: background-image layered with url("data:image/svg+xml,...") at 3% opacity — adds depth without pattern.
 
-D3.js SETUP:
-Load: <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-forceSimulation with forceManyBody strength -400, forceCenter, forceCollide radius 90.
-All JS inline. Initialize in DOMContentLoaded. Node click via d3 .on("click"). Detail panel is HTML div outside SVG — never position:absolute over SVG for text.
-
-RULES: Full dark mode throughout. All animations via CSS transitions triggered by JS class changes — never setTimeout chains for animations. All JS inline. Google Fonts import.`,
-
-    story_view: `AUDIENCE: Donors, board members, general public. Context: shared link replacing a printed annual report or used as a campaign page before a gala. Job: take someone on a complete emotional and evidential journey through the organization's impact.
-
-DESIGN INTENTION: This is the piece that makes a donor cry in the best possible way. It is not a report. It is a story told in full-screen chapters. Each program section is a complete thought — identity, then proof, then humanity. The numbers count up because watching them arrive feels like witnessing the work happen. The alternating backgrounds are not decoration — they are the rhythm of breathing. The journey testimonial is the emotional apex: one voice, one screen, nothing else.
-
-REQUIRED STRUCTURE — every section exactly 100vh:
-
-SECTION 1 — OPENING: Midnight Ink background with radial-gradient(ellipse at 40% 50%, #1e3448 0%, #0d1a26 80%). Content vertically centered via flexbox. Org name: Cormorant Garamond 88px weight 300 Warm Stone line-height 1.0, centered, fades in on load via CSS opacity 0→1 transition 1.2s ease. Below: 24px spacing. Mission statement: Cormorant Garamond italic 22px Warm Stone 75% opacity, centered, fades in 600ms delay. Below: period label 11px uppercase DM Sans Warm Stone 45% opacity letter-spacing 0.2em, fades in 1000ms delay. Scroll indicator bottom-center: thin animated line, 2px wide 40px tall Solar Gold, pulses opacity 60%→100%→60% on 2s loop.
-
-SECTIONS 2 through N — one per program in programs[]:
-Odd programs: Warm Stone background (#EDE8DE). Even programs: Midnight Ink background with linear-gradient(180deg, #1a2f42 0%, #0d1a26 100%).
-Content: max-width 800px centered, vertically centered via flexbox, padding 0 64px.
-IntersectionObserver triggers content sequence when section enters viewport (threshold 0.3):
-Step 1 (fires immediately on enter): program name in Cormorant Garamond 72px weight 300, color matches background contrast (Midnight Ink on Warm Stone, Warm Stone on dark). Enters via opacity 0→1 + transform translateY(24px)→translateY(0), transition 600ms ease.
-Step 2 (200ms delay): program description in DM Sans 300 18px line-height 1.75, 65% opacity, enters same way 500ms transition.
-Step 3 (500ms delay): "Outcomes" label (10px uppercase DM Sans Cerulean letter-spacing 0.2em) + outcomes text (DM Sans 17px line-height 1.7) enters opacity fade 400ms.
-Step 4 (900ms delay): metrics row — each metric displayed as: value in Cormorant Garamond 80px Solar Gold (counts up from 0 using requestAnimationFrame over 1.8s, starts counting when step 4 fires) + label 10px uppercase DM Sans below. Metrics appear left to right with 150ms stagger.
-Step 5 (after counter completes): client voice quote slides in from left — transform translateX(-48px)→translateX(0) opacity 0→1 transition 600ms. Quote styled with Solar Gold left border 4px, padding-left 24px, Cormorant Garamond italic 1.6rem, attribution 10px uppercase DM Sans.
-Missing fields: ⚠ blocks styled distinctly (amber left border, 10px DM Sans label naming exact missing field and where to add it).
-
-JOURNEY TESTIMONIAL SECTION: Midnight Ink with radial-gradient(ellipse at 50% 50%, #1e3448 0%, #0d1a26 80%). Content centered both axes. If org_testimonials not empty: quote mark 9rem Cormorant Garamond Solar Gold positioned behind text. Quote text Cormorant Garamond italic 2.4rem Warm Stone line-height 1.45 max-width 720px centered, enters via opacity fade 1s on IntersectionObserver. Attribution 11px uppercase DM Sans Warm Stone 50% opacity letter-spacing 0.2em. If empty: full-width ⚠ block amber border "No journey testimonials entered — add one in your Data Area."
-
-CLOSING SECTION: Warm Stone background. Max-width 800px centered. Aggregate outcomes AI-generated from all programs. Cormorant Garamond 48px weight 300 Midnight Ink line-height 1.3. Final forward-looking sentence DM Sans 18px Midnight Ink 70% opacity line-height 1.7. Org logo if present, small, centered below. "Powered by Candela · candela.education" 11px DM Sans Midnight Ink 35% opacity (unless suppressed).
-
-ANIMATION RULES — non-negotiable:
-- All entrance animations: CSS transitions triggered by IntersectionObserver adding a class. Never setTimeout chains.
-- Sliding elements: transform: translateX/translateY only — never position changes.
-- Counter animation: requestAnimationFrame loop, update textContent each frame, easeOutCubic easing function, stop exactly at target value.
-- Never animate an element whose parent has overflow: hidden.
-- Scroll indicator on section 1: CSS keyframe animation, not JS.
-
-D3.js: Available via CDN if a program section benefits from an inline data visualization. Only load if actually used.
+D3.js force simulation setup:
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+d3.forceSimulation with: forceManyBody strength -500, forceCenter at SVG center, forceCollide radius 100, forceLink for hub connections with distance 220. Let simulation run for 200 ticks then alpha(0) to freeze — nodes don't continuously move, they settle into position.
 
-RULES: Solar Gold for all metric numbers. Google Fonts import. All JS inline. Period filter applies to program sections — testimonial section is not period-filtered.`,
+SVG fills full viewport. Position: fixed during Level 1, releases on drill-down.
+
+PROGRAM NODES:
+Each node: SVG <circle> radius 58px.
+Fill: SVG <radialGradient> id unique per node — top-left highlight #4a8fb8 0%, Cerulean #3A6B8A 65%, #1a3d56 100%.
+Filter: SVG <filter> feDropShadow dx=0 dy=6 stdDeviation=14 flood-color=#050e18 flood-opacity=0.7.
+Outer ring: SVG <circle> radius 72px, stroke Cerulean 20% opacity, stroke-width 1px, fill none.
+Active/hover ring: SVG <circle> radius 82px, stroke Solar Gold 0% opacity, stroke-width 1.5px, fill none. CSS transition stroke-opacity 200ms ease.
+
+Node labels — NEVER use HTML over SVG:
+Shadow text: SVG <text> fill #050e18 opacity 0.5 dy=1 — program name
+Visible text: SVG <text> fill #EDE8DE — same program name
+DM Sans 11px font-weight 500 letter-spacing 0.03em, text-anchor: middle, dominant-baseline: middle.
+Truncate at 18 chars with ellipsis.
+Below program name: SVG <text> fill Solar Gold opacity 0.9 font-size 18px Cormorant Garamond — the featured metric value. This is the only data visible at Level 1. Number only, no label. Positioned 20px below center.
+
+CENTRAL HUB: SVG <circle> radius 72px. Deeper gradient version. Outer ring radius 88px Solar Gold 20% opacity. Second outer ring radius 104px Solar Gold 10% opacity — creates depth halo.
+CSS keyframe pulse on outer rings: alternating scale(1)↔scale(1.06) over 3.5s infinite ease-in-out, staggered 1.75s between rings. The double-ring pulse feels alive, not mechanical.
+If org.logo_url: SVG <image> width=90 height=90 centered, clipped to circle via <clipPath>.
+If no logo: Org initials (max 2 chars) Cormorant Garamond 36px Warm Stone, centered in hub.
+
+CONNECTIONS: SVG <line> per program-to-hub. SVG <linearGradient> stroke — Solar Gold 15% opacity at hub, transparent at node. stroke-width 1px.
+
+SOLAR FLARE: setTimeout 25s loop. A new SVG <circle> created at hub center, radius animates 72→200px, opacity 0.5→0 over 1.4s via CSS animation class. Remove element after animation. Clear and restart timer on any user interaction.
+
+PERIOD SELECTOR: Top-right fixed position. Background rgba(255,255,255,0.07) border 1px solid rgba(255,255,255,0.12) border-radius 6px padding 10px 20px. DM Sans 12px Warm Stone. Options = unique period_labels from all programs[].
+
+"ALL PROGRAMS" TOGGLE: Top-left, same style as period selector. Switches to Level 3. Text: "Grid View"
+
+AGENCY STATS BAR: Bottom of screen, full width, position fixed. Height 56px. Background rgba(13,26,38,0.85) backdrop-filter blur(12px). Border-top 1px solid rgba(255,255,255,0.06). Displays total participants across all programs as small stat chips: each chip shows sum of featured metrics per program. DM Sans 11px Warm Stone 60%, value in Solar Gold.
+
+LEVEL 2 — PROGRAM DEEP DIVE (click any node):
+
+Transition: clicked node expands — SVG circle radius animates 58→100px over 300ms, then entire SVG fades to opacity 0.15 over 200ms as detail panel takes over.
+
+Detail panel: position fixed, right 0 top 0, width 62%, height 100vh. Background linear-gradient(160deg, #162433 0%, #0a1520 100%). Left border 3px solid Solar Gold. Enters via transform translateX(100%)→translateX(0) transition 380ms cubic-bezier(0.16, 1, 0.3, 1).
+
+Panel has two zones: HEADER (fixed height) + SCROLLABLE CONTENT (overflow-y auto, custom scrollbar: 4px wide, Solar Gold 30% opacity track, Solar Gold 70% thumb).
+
+PANEL HEADER (fixed, 100px):
+Program name: Cormorant Garamond 38px weight 300 Warm Stone line-height 1.1, padding 28px 40px 0.
+Period label: 10px uppercase DM Sans Warm Stone 40% letter-spacing 0.2em, padding 4px 40px 0.
+"← Back" button: top-right 20px, 11px DM Sans Warm Stone 55%, hover Warm Stone 100%, transition 200ms.
+Bottom of header: 1px border Solar Gold 25% opacity.
+
+PANEL SCROLLABLE CONTENT (padding 32px 40px 64px):
+
+BLOCK 1 — METRICS (full display, ALL metrics for this program):
+Label: "Impact Numbers" 10px uppercase DM Sans Cerulean letter-spacing 0.2em, margin-bottom 20px.
+CSS Grid: repeat(auto-fit, minmax(160px, 1fr)), gap 16px.
+Each metric card: background rgba(255,255,255,0.05), border-radius 3px, padding 20px 24px, min-height unset — content drives height.
+Value: Cormorant Garamond 52px Solar Gold line-height 0.95. Counter animates from 0 on panel open.
+Label: 10px uppercase DM Sans Warm Stone 55% letter-spacing 0.15em, margin-top 8px.
+Target if present: DM Sans 11px Warm Stone 30% margin-top 4px — "Target: [target]"
+Featured metric card gets special treatment: border-left 2px solid Solar Gold, background rgba(233,192,58,0.06).
+If metrics empty: ⚠ block.
+
+BLOCK 2 — PROGRAM OVERVIEW:
+Label: "About This Program" same label style.
+Description: DM Sans 300 15px Warm Stone 80% line-height 1.75.
+
+BLOCK 3 — OUTCOMES (ALL outcomes, not just first):
+Label: "What We Achieved" same label style.
+Each outcome as a separate line item — left border 2px solid Cerulean 40%, padding-left 16px, DM Sans 14px Warm Stone 85% line-height 1.65, margin-bottom 12px.
+If outcomes empty: ⚠ block.
+
+BLOCK 4 — BARRIERS (if present):
+Label: "Challenges We Navigated" same label style.
+Each barrier: left border 2px solid rgba(233,192,58,0.3), padding-left 16px, DM Sans 14px Warm Stone 65% line-height 1.65, margin-bottom 12px.
+
+BLOCK 5 — WHAT CHANGED (if present):
+Label: "What Shifted" same label style.
+DM Sans 14px Warm Stone 75% line-height 1.75 font-style italic.
+
+BLOCK 6 — CLIENT VOICES (ALL quotes, carousel with navigation):
+Label: "In Their Words" same label style.
+Quote display area: min-height 120px, position relative.
+Active quote: Large quote mark 5rem Cormorant Garamond Solar Gold, positioned as background element. Quote text Cormorant Garamond italic 1.5rem Warm Stone line-height 1.55. Attribution 10px uppercase DM Sans Warm Stone 45% letter-spacing 0.2em.
+If multiple quotes: quote counter "1 of 3" in 11px DM Sans Warm Stone 35%, navigation arrows in Solar Gold 60%, hover 100%. Previous/next cycle through client_voice array. CSS opacity transition 300ms between quotes.
+If client_voice empty: ⚠ block.
+
+LEVEL 3 — ALL PROGRAMS GRID (grid view toggle):
+
+Transition from Level 1: SVG constellation fades to opacity 0 over 400ms. Grid fades in.
+Transition back: reverse.
+
+Layout: full screen, background matches canvas gradient. Padding 80px 64px. Content max-width 1400px centered.
+
+Header: "All Programs" Cormorant Garamond 48px weight 300 Warm Stone, period label 11px DM Sans Warm Stone 40%. "← Constellation" button top-left.
+
+Program cards grid: CSS Grid repeat(auto-fit, minmax(340px, 1fr)) gap 24px.
+
+Each program card: background linear-gradient(145deg, #162433 0%, #0d1a26 100%), border-radius 4px, border-top 2px solid Solar Gold, padding 32px, cursor pointer.
+
+Card content — ALL data visible without click:
+- Program name: Cormorant Garamond 28px Warm Stone weight 300
+- Featured metric: value Cormorant Garamond 64px Solar Gold line-height 0.9 + label 10px uppercase DM Sans
+- ALL remaining metrics as a compact row: each metric value in DM Sans 500 18px Solar Gold + label 9px DM Sans Warm Stone 50%, separated by vertical dividers
+- First outcome: DM Sans 13px Warm Stone 70% line-height 1.6, margin-top 16px, max 2 lines then fade out with gradient
+- "Show more" link if outcomes has more than 1 item: 11px DM Sans Solar Gold, expands card inline
+- Client quote preview: first 80 chars of client_voice[0] in Cormorant Garamond italic 14px Warm Stone 55%, if present
+- Card hover: background lightens slightly, box-shadow 0 8px 40px rgba(0,0,0,0.4). Cursor pointer.
+- Click card → opens Level 2 panel for that program (same panel behavior, Level 3 dims to 30% opacity behind it)
+
+GLOBAL RULES FOR THIS VIEW:
+- All JavaScript inline in HTML document
+- Initialize D3 inside DOMContentLoaded
+- CSS custom properties in :root for all colors
+- No position: absolute for text — SVG <text> for node labels, transform-based transitions for panels
+- Custom scrollbar on detail panel: thin, Solar Gold-tinted
+- All metric counter animations use the same requestAnimationFrame easeOutCubic function
+- Period selector change: re-renders Level 1 node featured metrics and Level 3 card data for selected period
+- Google Fonts import in <head>
+- text-rendering: optimizeLegibility and -webkit-font-smoothing: antialiased on all text
+- max_tokens for this view: use full 16384 — this view requires complete HTML`,
+
+    story_view: `AUDIENCE: Donors, board members, general public. Context: shared link replacing a printed annual report or used as a campaign page. Job: take someone on a complete emotional journey through the organization's impact — data arrives as you scroll, not before.
+
+DESIGN INTENTION: Clean white canvas. The whiteness is intentional — it creates the sense that content is emerging from nothing, conjured by the scroll. Color is used surgically: Solar Gold for numbers that matter, Cerulean for structural moments, Midnight Ink for text that needs authority. Nothing is decorative. Every color use is a decision.
+
+The scrollytelling is the product. Content does not sit on the page waiting — it arrives. Text blocks enter from alternating sides. Numbers materialize. Quotes slide into place. The viewer feels like they are calling the data into existence with their scrolling.
+
+TECHNICAL FOUNDATION:
+Use IntersectionObserver (threshold: 0.2) on every animated element. Each element starts in a hidden state via CSS class. When the observer fires, add the visible class which triggers CSS transitions. Never use setTimeout chains for sequencing — use CSS transition-delay on child elements within a triggered parent.
+
+All entrance animations are CSS transitions. JS only adds/removes classes. Zero setTimeout animation chains.
+
+REQUIRED CSS ANIMATION SYSTEM — define these classes in <style>:
+.from-left { opacity: 0; transform: translateX(-60px); }
+.from-right { opacity: 0; transform: translateX(60px); }
+.from-below { opacity: 0; transform: translateY(40px); }
+.from-above { opacity: 0; transform: translateY(-40px); }
+.scale-in { opacity: 0; transform: scale(0.92); }
+.from-left.visible, .from-right.visible, .from-below.visible, .from-above.visible, .scale-in.visible {
+  opacity: 1; transform: none;
+  transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1), transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.delay-1 { transition-delay: 150ms; }
+.delay-2 { transition-delay: 300ms; }
+.delay-3 { transition-delay: 450ms; }
+.delay-4 { transition-delay: 600ms; }
+.delay-5 { transition-delay: 750ms; }
+
+Apply IntersectionObserver to every element with a from-* or scale-in class. When it enters viewport, add "visible". Once visible, unobserve (no re-triggering on scroll back).
+
+COUNTER ANIMATION: For metric numbers, use requestAnimationFrame with easeOutCubic. Extract numeric value from metric.value string — parse leading numbers, preserve units (%, $, +) as suffix. Count from 0 to target over 1800ms. Start counter when element receives "visible" class, not on page load.
+function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+function animateCounter(el, targetStr) {
+  const match = targetStr.match(/^([^0-9]*)([0-9,.]+)(.*)$/);
+  if (!match) { el.textContent = targetStr; return; }
+  const prefix = match[1], numStr = match[2].replace(/,/g,''), suffix = match[3];
+  const target = parseFloat(numStr);
+  const isInt = !numStr.includes('.');
+  const start = performance.now();
+  const duration = 1800;
+  function tick(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = easeOutCubic(progress);
+    const current = target * eased;
+    el.textContent = prefix + (isInt ? Math.round(current).toLocaleString() : current.toFixed(1)) + suffix;
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+REQUIRED PAGE STRUCTURE:
+
+SECTION 1 — OPENING (min-height: 100vh, white background #ffffff):
+Layout: vertically centered content, max-width 900px, centered, padding 0 64px.
+Elements and their entrance animations:
+- Period label: 11px uppercase DM Sans letter-spacing 0.2em Cerulean — class "from-above"
+- Org name: Cormorant Garamond 96px weight 300 Midnight Ink line-height 1.0 — class "from-below delay-1"
+- Horizontal rule: 2px width 80px Solar Gold, centered — class "scale-in delay-2"
+- Mission statement: Cormorant Garamond italic 24px Midnight Ink 70% opacity line-height 1.6 max-width 640px — class "from-below delay-3"
+- Scroll prompt: 11px uppercase DM Sans letter-spacing 0.15em Midnight Ink 35% opacity — class "from-below delay-4". Below text: animated chevron, CSS keyframe translateY(0)→translateY(8px)→translateY(0) over 1.6s infinite.
+
+SECTION 2 — IMPACT NUMBERS TEASER (min-height: 60vh, background #f8f8f6 — barely-there warm tint):
+Purpose: before diving into programs, show the agency-level numbers. Creates anticipation.
+Layout: CSS Grid, auto columns, gap 48px, max-width 1000px centered, padding 96px 64px.
+For each program in programs[], show ONLY the featured metric (first where is_featured=true, else metrics[0]):
+- Number: Cormorant Garamond 96px Solar Gold — class "from-below" with staggered delay per program (delay-1, delay-2, etc.)
+- Label: 10px uppercase DM Sans letter-spacing 0.18em Midnight Ink 55% — class "from-below" matching delay
+- Program name below label: 12px DM Sans Midnight Ink 40% — same delay
+Counter animation fires when "visible" added.
+Section label top: "This Period" in 10px uppercase DM Sans letter-spacing 0.2em Cerulean — class "from-above"
+
+PER-PROGRAM SECTIONS — one section per item in programs[] (min-height: 100vh, white background):
+Each section has a left column (45%) and right column (55%) layout via CSS Grid. Columns switch sides alternating: odd programs left=content right=quote, even programs left=quote right=content. This creates the visual rhythm of content coming from both sides.
+
+LEFT/RIGHT CONTENT COLUMN (odd programs):
+- Program number: "01", "02" etc in Cormorant Garamond 180px weight 300 Solar Gold 12% opacity — this is a background typographic element, positioned behind content via z-index, class "scale-in"
+- Program name: Cormorant Garamond 52px weight 300 Midnight Ink line-height 1.1 — class "from-left" (odd) or "from-right" (even)
+- Program description: DM Sans 300 17px Midnight Ink 65% line-height 1.75 — class "from-left delay-1" or "from-right delay-1"
+- "Outcomes" label: 10px uppercase DM Sans Cerulean letter-spacing 0.2em with 2px × 32px Solar Gold vertical rule — class "from-left delay-2"
+- Outcomes: DM Sans 16px Midnight Ink line-height 1.7 — class "from-left delay-3" or "from-right delay-3". If outcomes empty: ⚠ block.
+- Barriers if present: "Challenges" in same label style, then DM Sans 15px Midnight Ink 60% — class "from-left delay-4"
+- What changed if present: "What Changed" label, then DM Sans 15px — class "from-left delay-5"
+
+RIGHT/QUOTE COLUMN (odd programs — swaps for even):
+- Metrics block — each metric displayed vertically:
+  Value: Cormorant Garamond 88px Solar Gold line-height 0.9 — class "from-right delay-1" (odd) or "from-left delay-1" (even). Counter animation fires on visible.
+  Label: 10px uppercase DM Sans letter-spacing 0.18em Midnight Ink 55% — class "from-right delay-2"
+  Target if present: DM Sans 12px Midnight Ink 35% — "Target: X"
+  Each metric separated by 48px spacing.
+- Client voice quote — below metrics, Solar Gold left border 3px, padding-left 24px:
+  Quote text: Cormorant Garamond italic 1.7rem Midnight Ink line-height 1.55 — class "from-right delay-3"
+  Attribution: 10px uppercase DM Sans Midnight Ink 45% letter-spacing 0.2em — class "from-right delay-4"
+  If client_voice empty: ⚠ block styled amber left border, DM Sans 13px.
+
+BETWEEN-PROGRAM DIVIDERS:
+A full-width section, min-height 20vh, white background. Single centered element: program number in Cormorant Garamond 240px weight 300 Solar Gold 6% opacity. Class "scale-in". Creates breathing room and visual punctuation between programs.
+
+JOURNEY TESTIMONIAL SECTION (min-height: 100vh):
+Background: Midnight Ink #1B2B3A with radial-gradient(ellipse at 50% 50%, #1e3448 0%, #0d1a26 80%).
+Content: max-width 800px centered, vertically centered via flexbox.
+If org_testimonials not empty:
+- Quote mark: 10rem Cormorant Garamond Solar Gold — class "scale-in", positioned so quote text appears to emerge from beneath it
+- Quote text: Cormorant Garamond italic 2.6rem Warm Stone line-height 1.45 — class "from-below delay-1"
+- Attribution: 11px uppercase DM Sans Warm Stone 45% letter-spacing 0.2em — class "from-below delay-2"
+- Programs referenced note if programs_referenced not empty: 11px DM Sans Warm Stone 30% italic — "Journey spanning [program names]"
+If org_testimonials empty: styled ⚠ block, amber border, Warm Stone text: "No journey testimonials entered — add one in your Data Area."
+
+CLOSING SECTION (min-height: 80vh, white background):
+Content max-width 800px centered, padding 128px 64px.
+- Closing label: "The Work Continues" in 10px uppercase DM Sans Cerulean letter-spacing 0.2em — class "from-above"
+- AI-generated closing statement from all programs' outcomes combined: Cormorant Garamond 48px weight 300 Midnight Ink line-height 1.3 — class "from-below delay-1"
+- Forward-looking sentence: DM Sans 300 18px Midnight Ink 60% line-height 1.7 — class "from-below delay-2"
+- Org logo if present, 32px height, centered — class "scale-in delay-3"
+- "Powered by Candela · candela.education" 11px DM Sans Midnight Ink 30% centered — unless suppressed
+
+GLOBAL PAGE RULES:
+- Background: white (#ffffff) throughout except Teaser section (#f8f8f6) and Testimonial section (Midnight Ink gradient)
+- Body: max-width none — sections are full-width with internal max-width containers
+- Google Fonts import required in <head>
+- All CSS in <style> block, all JS inline before </body>
+- CSS custom properties in :root for all colors
+- text-rendering: optimizeLegibility and -webkit-font-smoothing: antialiased on all text
+- Sections must have position: relative and overflow: visible — never overflow: hidden on section containers
+- D3.js not needed for this view — vanilla JS only
+- Period filter: applies to all program sections. Testimonial section is not period-filtered.`,
   };
 }
 
