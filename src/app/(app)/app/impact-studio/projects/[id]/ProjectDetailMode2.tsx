@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ChevronLeft, Plus } from "lucide-react";
+import NewProjectModal from "@/components/impact-studio/NewProjectModal";
 
 interface Run {
   id: string;
@@ -64,6 +65,7 @@ export default function ProjectDetailMode2({
   const [activeRunId, setActiveRunId] = useState<string | null>(
     runs[0]?.id ?? null
   );
+  const [showNewViewModal, setShowNewViewModal] = useState(false);
 
   const statusCfg = STATUS_LABELS[project.status] ?? STATUS_LABELS.in_progress;
   const displayLabel =
@@ -173,11 +175,7 @@ export default function ProjectDetailMode2({
 
         {/* New View button */}
         <button
-          onClick={() =>
-            router.push(
-              `/app/impact-studio/projects/${project.id}?mode=generator`
-            )
-          }
+          onClick={() => setShowNewViewModal(true)}
           className="flex items-center justify-center gap-2 px-4 py-2 bg-[#E9C03A] text-[#1B2B3A] rounded-lg text-sm font-medium hover:brightness-105 transition-all"
           style={dmSans}
         >
@@ -187,6 +185,19 @@ export default function ProjectDetailMode2({
 
         <div className="h-12" />
       </div>
+
+      {/* New View Modal */}
+      {showNewViewModal && (
+        <NewProjectModal
+          onClose={() => setShowNewViewModal(false)}
+          onCreated={() => {
+            // Navigation happens inside the modal after generation
+          }}
+          existingProjectId={project.id}
+          existingProjectName={project.name}
+          existingRunCount={runs.length}
+        />
+      )}
     </div>
   );
 }
