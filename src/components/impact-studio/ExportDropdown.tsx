@@ -58,37 +58,26 @@ export default function ExportDropdown({
     }, 2000);
   }
 
-  async function handlePdf() {
+  const isInteractive = viewType === "Impact Command Center" || viewType === "Story View";
+
+  function handlePdf() {
     setOpen(false);
-    const iframe = getIframeElement();
-    if (!iframe?.contentDocument?.body) return;
+    const outputHtml = getHtml();
+    if (!outputHtml) return;
 
-    const html2canvas = (await import("html2canvas")).default;
-    const { jsPDF } = await import("jspdf");
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
 
-    const body = iframe.contentDocument.body;
-    const canvas = await html2canvas(body, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      windowWidth: body.scrollWidth,
-      windowHeight: body.scrollHeight,
-    });
+    printWindow.document.write(outputHtml);
+    printWindow.document.close();
 
-    const imgData = canvas.toDataURL("image/png");
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
-
-    // A4-ish proportions, landscape if content is wide
-    const isLandscape = imgWidth > imgHeight;
-    const pdf = new jsPDF({
-      orientation: isLandscape ? "landscape" : "portrait",
-      unit: "px",
-      format: [imgWidth / 2, imgHeight / 2],
-    });
-
-    pdf.addImage(imgData, "PNG", 0, 0, imgWidth / 2, imgHeight / 2);
-    pdf.save(`${baseName}.pdf`);
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+      }, 800);
+    };
   }
 
   async function handleDocx() {
@@ -183,14 +172,25 @@ export default function ExportDropdown({
               </>
             )}
           </button>
-          <button
-            onClick={handlePdf}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#1B2B3A]/70 hover:bg-[#1B2B3A]/5 transition-colors"
-            style={dmSans}
-          >
-            <FileDown className="w-4 h-4" />
-            Download PDF
-          </button>
+          {isInteractive ? (
+            <div
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#1B2B3A]/25 cursor-not-allowed"
+              style={dmSans}
+              title="PDF not available for interactive views — use Share Link instead"
+            >
+              <FileDown className="w-4 h-4" />
+              Download PDF
+            </div>
+          ) : (
+            <button
+              onClick={handlePdf}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#1B2B3A]/70 hover:bg-[#1B2B3A]/5 transition-colors"
+              style={dmSans}
+            >
+              <FileDown className="w-4 h-4" />
+              Download PDF
+            </button>
+          )}
           <button
             onClick={handleDocx}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#1B2B3A]/70 hover:bg-[#1B2B3A]/5 transition-colors"
