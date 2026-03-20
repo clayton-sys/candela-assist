@@ -514,6 +514,7 @@ export default function NewProjectModal({
           layout: "constellation",
           programDataIds: selectedDataIds,
           orgId,
+          force_regenerate: true,
         }),
       });
 

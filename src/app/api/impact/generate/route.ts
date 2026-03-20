@@ -516,22 +516,42 @@ REQUIRED flag behavior — these rules override all other instructions:
     // Resolve theme instructions
     const themeInstructions = getThemeInstructions(theme_id ?? theme ?? "candela-classic");
 
-    // Cache check — returns existing output if same view/theme/data was generated before
-    if (!force_regenerate && selectedViews.length === 1) {
+    // Cache check — only returns existing output if view_type AND data IDs match
+    if (!force_regenerate && selectedViews.length === 1 && programDataIds?.length) {
       const cacheViewType = selectedViews[0];
-      const { data: cached } = await supabase
-        .from("generated_views")
-        .select("output_html, id")
-        .eq("view_type", cacheViewType)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
+      const sortedIncoming = [...programDataIds].sort().join(",");
 
-      if (cached?.output_html) {
-        return new Response(
-          JSON.stringify({ outputs: { [cacheViewType]: cached.output_html }, cached: true }),
-          { headers: { "Content-Type": "application/json", "X-Cache": "HIT" } }
-        );
+      // Find recent runs that used the same selected data points
+      const { data: recentRuns } = await supabase
+        .from("project_runs")
+        .select("id, selected_data_points")
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (recentRuns) {
+        const matchingRun = recentRuns.find((run) => {
+          const stored = Array.isArray(run.selected_data_points)
+            ? [...(run.selected_data_points as string[])].sort().join(",")
+            : "";
+          return stored === sortedIncoming;
+        });
+
+        if (matchingRun) {
+          const { data: cachedView } = await supabase
+            .from("generated_views")
+            .select("output_html")
+            .eq("run_id", matchingRun.id)
+            .eq("view_type", cacheViewType)
+            .limit(1)
+            .single();
+
+          if (cachedView?.output_html) {
+            return new Response(
+              JSON.stringify({ outputs: { [cacheViewType]: cachedView.output_html }, cached: true }),
+              { headers: { "Content-Type": "application/json", "X-Cache": "HIT" } }
+            );
+          }
+        }
       }
     }
 
