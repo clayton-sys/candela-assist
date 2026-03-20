@@ -1140,17 +1140,15 @@ export default function NewProjectModal({
                               className="text-sm text-[#1B2B3A] truncate"
                               style={dmSans}
                             >
-                              {entry.period_label ??
-                                `Entry from ${new Date(entry.created_at).toLocaleDateString()}`}
+                              {entry.program?.name ?? "Org-wide"}
+                              {entry.period_label ? ` — ${entry.period_label}` : ""}
                             </p>
-                            {entry.program && (
-                              <p
-                                className="text-xs text-[#1B2B3A]/40 truncate"
-                                style={dmSans}
-                              >
-                                {entry.program.name}
-                              </p>
-                            )}
+                            <p
+                              className="text-xs text-[#1B2B3A]/35 truncate"
+                              style={dmSans}
+                            >
+                              {new Date(entry.created_at).toLocaleDateString()}
+                            </p>
                           </div>
                         </button>
                       );

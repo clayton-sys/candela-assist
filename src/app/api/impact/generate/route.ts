@@ -248,7 +248,7 @@ Card content — ALL data visible without click:
 
 GLOBAL RULES FOR THIS VIEW:
 - All JavaScript inline in HTML document
-- Initialize D3 inside DOMContentLoaded
+- D3 LOAD TIMING — CRITICAL: The D3 <script> tag loads asynchronously from CDN. Do NOT initialize the simulation in DOMContentLoaded — that fires before the external script finishes loading. Instead, use the script tag's onload callback: <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js" onload="initConstellation()"></script>. Wrap the entire D3 initialization code in a function called initConstellation() defined in an inline <script> block BEFORE the CDN script tag, but called only via onload. If D3 fails to load, show a fallback: a static CSS grid of program cards with the same data, no animation
 - CSS custom properties in :root for all colors
 - No position: absolute for text — SVG <text> for node labels, transform-based transitions for panels
 - Custom scrollbar on detail panel: thin, Solar Gold-tinted
