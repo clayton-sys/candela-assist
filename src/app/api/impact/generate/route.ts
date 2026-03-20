@@ -188,6 +188,33 @@ export async function POST(req: NextRequest) {
           ``,
           `VISUAL THEME — this governs all layout, typography, section transitions, and visual density. It is not a suggestion. Every structural and aesthetic decision must express this theme:\n${themeInstructions}`,
           ``,
+          `DESIGN RULES — follow these precisely, they are not optional:
+
+TYPOGRAPHY: Use extreme scale contrast. Hero stats must be 120px–180px. Section labels must be 10px–12px uppercase with 0.15em letter-spacing. Never use a uniform modular scale — create deliberate tension between sizes. Headings in Cormorant Garamond, body and labels in DM Sans.
+
+GOOGLE FONTS: ALWAYS include this exact import inside the <head> tag:
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+LAYOUT: Use CSS Grid with named template areas. Never use equal-column layouts. Asymmetry creates visual interest. At least one section must use a full-bleed color fill with content offset to one side.
+
+STATS: Display primary stats as enormous typographic statements — the number alone at massive scale, label in small uppercase below. No boxes or borders around stats. No icons next to stats.
+
+CLIENT QUOTES: Full-bleed treatment. Large opening quote mark (4rem+) in accent color. Quote text at 1.4rem–1.8rem. Attribution small and uppercase. Never put quotes in a bordered card.
+
+SEPARATORS: Never use borders or horizontal rules to separate sections. Use background color changes, large whitespace (80px–120px padding), or overlapping elements instead.
+
+CARDS: If used, cards must vary in size. No uniform card grids. Mix one large feature card with smaller supporting cards.
+
+WHITESPACE: Be generous. Minimum 80px vertical padding per section.
+
+NEVER DO THESE:
+- Equal-height card grids
+- Horizontal rule dividers
+- Borders around data cards or stat boxes
+- Centered text for body copy (headings only)
+- Font sizes between 16px and 28px for anything displayed as a headline
+- Flat single-color backgrounds with no variation across the full page`,
+          ``,
           colorDirective,
           ``,
           identityDirective,
