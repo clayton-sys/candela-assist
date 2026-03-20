@@ -15,15 +15,14 @@ async function callDistill(userPrompt: string): Promise<string> {
   });
 
   const content = message.content[0];
-  const raw = content.type === "text" ? content.text.trim() : "";
+  const responseText = content.type === "text" ? content.text.trim() : "";
 
-  // Strip markdown fences if Haiku wraps them anyway
-  const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-  const cleaned = fenceMatch ? fenceMatch[1].trim() : raw;
+  // Strip markdown code fences if Haiku wraps them despite instructions
+  const raw = responseText.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
 
   // Validate it parses
-  JSON.parse(cleaned);
-  return cleaned;
+  JSON.parse(raw);
+  return raw;
 }
 
 export async function distillForSnapshot(payload: ImpactPayload): Promise<string> {
