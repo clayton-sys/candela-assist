@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Fraunces, Jost, DM_Mono } from "next/font/google";
+import "@fontsource-variable/playfair-display";
+import "@fontsource/lora";
+import "@fontsource/plus-jakarta-sans";
 import "./globals.css";
 
 const fraunces = Fraunces({

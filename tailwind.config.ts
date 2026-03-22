@@ -24,6 +24,9 @@ const config: Config = {
         jost: ["var(--font-jost)", "system-ui", "sans-serif"],
         mono: ["var(--font-dm-mono)", "monospace"],
         sans: ["var(--font-jost)", "system-ui", "sans-serif"],
+        display: ["Playfair Display Variable", "serif"],
+        quote: ["Lora", "serif"],
+        jakarta: ["Plus Jakarta Sans", "sans-serif"],
       },
       backgroundImage: {
         "midnight-gradient":
