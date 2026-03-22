@@ -1,17 +1,30 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { assemblePublicPayload } from "@/lib/impact-room/assemble-public";
+import { assembleInternalPayload } from "@/lib/impact-room/assemble-internal";
+import { createClient } from "@/lib/supabase/server";
 import HeroSection from "@/components/impact-room/HeroSection";
 import StatsSection from "@/components/impact-room/StatsSection";
 import ProgramsSection from "@/components/impact-room/ProgramsSection";
 import SpineNav from "@/components/impact-room/SpineNav";
+import TerminalView from "@/components/impact-room/TerminalView";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ mode?: string }>;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const { mode } = await searchParams;
+
+  if (mode === "internal") {
+    const payload = await assembleInternalPayload(slug);
+    return {
+      title: payload ? `${payload.org.name} — Impact Terminal` : "Impact Terminal — Not Found",
+    };
+  }
+
   const payload = await assemblePublicPayload(slug);
   if (!payload) {
     return { title: "Impact Report — Not Found" };
@@ -32,15 +45,47 @@ export default async function ImpactRoomPage({ params, searchParams }: PageProps
   const { slug } = await params;
   const { mode } = await searchParams;
 
-  // Terminal mode placeholder (Block 4)
+  // ── Internal terminal mode ─────────────────────────────────────
   if (mode === "internal") {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <p className="font-jakarta text-white/40 text-sm uppercase tracking-widest">
-          Terminal view — coming soon
-        </p>
-      </div>
-    );
+    // Auth check
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      redirect(`/login?next=/impact/${slug}?mode=internal`);
+    }
+
+    const payload = await assembleInternalPayload(slug);
+    if (!payload) {
+      return (
+        <div className="min-h-screen bg-[#0a0c0f] flex items-center justify-center">
+          <p style={{ fontFamily: "ui-monospace, monospace", fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>
+            Organization not found.
+          </p>
+        </div>
+      );
+    }
+
+    // Verify org membership
+    const { data: orgRow } = await supabase
+      .from("orgs")
+      .select("id")
+      .eq("slug", slug)
+      .single();
+
+    if (orgRow) {
+      const { data: membership } = await supabase
+        .from("org_users")
+        .select("id")
+        .eq("org_id", orgRow.id)
+        .eq("user_id", user.id)
+        .single();
+
+      if (!membership) {
+        redirect(`/login?next=/impact/${slug}?mode=internal`);
+      }
+    }
+
+    return <TerminalView payload={payload} slug={slug} />;
   }
 
   const payload = await assemblePublicPayload(slug);
