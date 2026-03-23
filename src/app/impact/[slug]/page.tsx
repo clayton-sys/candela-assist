@@ -181,7 +181,7 @@ export default async function ImpactRoomPage({ params, searchParams }: PageProps
             <p
               className="font-jakarta uppercase mb-6"
               style={{
-                fontSize: "8px",
+                fontSize: "11px",
                 fontWeight: 300,
                 color: "rgba(255,255,255,0.22)",
                 letterSpacing: "6px",
@@ -205,7 +205,7 @@ export default async function ImpactRoomPage({ params, searchParams }: PageProps
             {/* Quote */}
             <blockquote
               className="font-quote italic text-white"
-              style={{ fontSize: "22px", lineHeight: 1.6 }}
+              style={{ fontSize: "30px", lineHeight: 1.6 }}
             >
               {payload.closing_testimonial.text}
             </blockquote>
@@ -220,7 +220,7 @@ export default async function ImpactRoomPage({ params, searchParams }: PageProps
             <p
               className="font-jakarta uppercase"
               style={{
-                fontSize: "9px",
+                fontSize: "12px",
                 fontWeight: 300,
                 color: "#E9C03A",
                 letterSpacing: "4px",
@@ -239,17 +239,31 @@ export default async function ImpactRoomPage({ params, searchParams }: PageProps
         style={{ backgroundColor: "#1B2B3A" }}
       >
         <div className="flex flex-col items-center text-center gap-5">
-          {/* C-arc SVG */}
-          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-            <circle cx="18" cy="18" r="14" stroke="#E9C03A" strokeWidth="2.5" />
-            <rect x="18" y="3" width="19" height="30" fill="#1B2B3A" />
-            <circle cx="18" cy="18" r="7" stroke="#E9C03A" strokeWidth="2" />
-            <rect x="18" y="10" width="12" height="16" fill="#1B2B3A" />
+          {/* Candela C-arc logo */}
+          <svg className="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none">
+            <line x1="152" y1="58" x2="192" y2="18" stroke="#E9C03A" strokeWidth="3" strokeLinecap="round" opacity="1"/>
+            <line x1="162" y1="72" x2="210" y2="52" stroke="#E9C03A" strokeWidth="2.5" strokeLinecap="round" opacity="0.85"/>
+            <line x1="140" y1="50" x2="148" y2="8" stroke="#E9C03A" strokeWidth="2.5" strokeLinecap="round" opacity="0.85"/>
+            <line x1="170" y1="90" x2="222" y2="82" stroke="#E9C03A" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+            <line x1="126" y1="46" x2="118" y2="4" stroke="#E9C03A" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+            <line x1="172" y1="110" x2="226" y2="116" stroke="#E9C03A" strokeWidth="1.5" strokeLinecap="round" opacity="0.35"/>
+            <line x1="112" y1="46" x2="90" y2="10" stroke="#E9C03A" strokeWidth="1.5" strokeLinecap="round" opacity="0.35"/>
+            <circle cx="194" cy="16" r="3" fill="#E9C03A" opacity="0.9"/>
+            <circle cx="212" cy="50" r="2.5" fill="#E9C03A" opacity="0.75"/>
+            <circle cx="149" cy="6" r="2.5" fill="#E9C03A" opacity="0.75"/>
+            <circle cx="224" cy="80" r="2" fill="#E9C03A" opacity="0.5"/>
+            <circle cx="117" cy="3" r="2" fill="#E9C03A" opacity="0.5"/>
+            <path d="M 154 170 A 56 56 0 1 1 154 70" stroke="#3A6B8A" strokeWidth="6" strokeLinecap="round" fill="none" opacity="0.55"/>
+            <path d="M 162 180 A 68 68 0 1 1 162 60" stroke="#E9C03A" strokeWidth="16" strokeLinecap="round" fill="none"/>
+            <circle cx="162" cy="60" r="8" fill="#E9C03A"/>
+            <circle cx="162" cy="180" r="8" fill="#E9C03A"/>
+            <circle cx="162" cy="60" r="12" fill="rgba(233,192,58,0.15)"/>
+            <circle cx="162" cy="60" r="18" fill="rgba(233,192,58,0.06)"/>
           </svg>
 
           <h3
             className="font-display font-black"
-            style={{ fontSize: "24px", color: "#EDE8DE" }}
+            style={{ fontSize: "36px", color: "#EDE8DE" }}
           >
             Candela
           </h3>
@@ -257,7 +271,7 @@ export default async function ImpactRoomPage({ params, searchParams }: PageProps
           <p
             className="font-jakarta uppercase"
             style={{
-              fontSize: "11px",
+              fontSize: "16px",
               fontWeight: 200,
               letterSpacing: "3px",
               color: "rgba(255,255,255,0.35)",
@@ -268,7 +282,7 @@ export default async function ImpactRoomPage({ params, searchParams }: PageProps
 
           <p
             className="font-quote italic"
-            style={{ fontSize: "16px", color: "rgba(255,255,255,0.22)" }}
+            style={{ fontSize: "20px", color: "rgba(255,255,255,0.22)" }}
           >
             La luz que gu&iacute;a
           </p>

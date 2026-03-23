@@ -74,7 +74,7 @@ export default function ProgramsSection({
               <p
                 className="font-jakarta uppercase mb-3"
                 style={{
-                  fontSize: "8px",
+                  fontSize: "11px",
                   fontWeight: 300,
                   color: GOLD,
                   letterSpacing: "5px",
@@ -88,7 +88,7 @@ export default function ProgramsSection({
                 <p
                   className="font-jakarta uppercase text-white/[0.45] mb-1"
                   style={{
-                    fontSize: "11px",
+                    fontSize: "14px",
                     fontWeight: 200,
                     letterSpacing: "2px",
                   }}
@@ -101,7 +101,7 @@ export default function ProgramsSection({
               <h2
                 className="font-display font-black text-white mb-6"
                 style={{
-                  fontSize: "28px",
+                  fontSize: "36px",
                   letterSpacing: "-0.5px",
                 }}
               >
@@ -114,7 +114,7 @@ export default function ProgramsSection({
                   <div className="flex items-baseline">
                     <span
                       className="font-display font-black text-white"
-                      style={{ fontSize: "80px", letterSpacing: "-4px", lineHeight: 1 }}
+                      style={{ fontSize: "88px", letterSpacing: "-4px", lineHeight: 1 }}
                     >
                       {active.headline_metric.value}
                     </span>
@@ -122,7 +122,7 @@ export default function ProgramsSection({
                   <p
                     className="font-jakarta uppercase text-white/[0.35] mt-2"
                     style={{
-                      fontSize: "8px",
+                      fontSize: "16px",
                       fontWeight: 300,
                       letterSpacing: "4px",
                     }}
@@ -165,7 +165,7 @@ export default function ProgramsSection({
                 <p
                   className="font-jakarta uppercase mb-2"
                   style={{
-                    fontSize: "8px",
+                    fontSize: "11px",
                     fontWeight: 300,
                     color: GOLD,
                     letterSpacing: "5px",
@@ -176,14 +176,14 @@ export default function ProgramsSection({
                 {prog.name_descriptor && (
                   <p
                     className="font-jakarta uppercase text-white/[0.45] mb-1"
-                    style={{ fontSize: "11px", fontWeight: 200, letterSpacing: "2px" }}
+                    style={{ fontSize: "14px", fontWeight: 200, letterSpacing: "2px" }}
                   >
                     {prog.name_descriptor}
                   </p>
                 )}
                 <h2
                   className="font-display font-black text-white"
-                  style={{ fontSize: "24px", letterSpacing: "-0.5px" }}
+                  style={{ fontSize: "30px", letterSpacing: "-0.5px" }}
                 >
                   {prog.name_bold}
                 </h2>
@@ -191,13 +191,13 @@ export default function ProgramsSection({
                   <div className="mt-4">
                     <span
                       className="font-display font-black text-white"
-                      style={{ fontSize: "48px", letterSpacing: "-3px", lineHeight: 1 }}
+                      style={{ fontSize: "64px", letterSpacing: "-3px", lineHeight: 1 }}
                     >
                       {prog.headline_metric.value}
                     </span>
                     <p
                       className="font-jakarta uppercase text-white/[0.35] mt-1"
-                      style={{ fontSize: "8px", fontWeight: 300, letterSpacing: "4px" }}
+                      style={{ fontSize: "16px", fontWeight: 300, letterSpacing: "4px" }}
                     >
                       {prog.headline_metric.label}
                     </p>
@@ -211,7 +211,7 @@ export default function ProgramsSection({
                   <p
                     className="font-jakarta uppercase mb-4"
                     style={{
-                      fontSize: "8px",
+                      fontSize: "11px",
                       fontWeight: 300,
                       color: GOLD,
                       letterSpacing: "5px",
@@ -222,7 +222,7 @@ export default function ProgramsSection({
                   <p
                     className="font-jakarta text-white/[0.65]"
                     style={{
-                      fontSize: "15px",
+                      fontSize: "20px",
                       fontWeight: 300,
                       lineHeight: 1.75,
                     }}
@@ -238,7 +238,7 @@ export default function ProgramsSection({
                   <p
                     className="font-jakarta uppercase mb-4"
                     style={{
-                      fontSize: "8px",
+                      fontSize: "11px",
                       fontWeight: 300,
                       color: "rgba(255,255,255,0.22)",
                       letterSpacing: "4px",
@@ -261,7 +261,7 @@ export default function ProgramsSection({
                     <blockquote
                       className="font-quote italic text-white relative z-10"
                       style={{
-                        fontSize: "21px",
+                        fontSize: "28px",
                         lineHeight: 1.55,
                       }}
                     >
@@ -270,7 +270,7 @@ export default function ProgramsSection({
                     <p
                       className="font-jakarta uppercase mt-4"
                       style={{
-                        fontSize: "9px",
+                        fontSize: "12px",
                         fontWeight: 300,
                         color: GOLD,
                         letterSpacing: "4px",

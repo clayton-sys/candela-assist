@@ -92,7 +92,7 @@ export default function HeroSection({
         <h1
           className="font-display font-black text-white"
           style={{
-            fontSize: "clamp(32px, 5vw, 54px)",
+            fontSize: "clamp(48px, 6vw, 72px)",
             letterSpacing: "-2px",
             transform: `translateY(${nameTranslateY}px)`,
           }}
@@ -102,7 +102,7 @@ export default function HeroSection({
         <p
           className="font-jakarta uppercase text-white/[0.38] mt-3"
           style={{
-            fontSize: "10px",
+            fontSize: "13px",
             fontWeight: 200,
             letterSpacing: "4px",
             opacity: locationOpacity,
@@ -129,9 +129,9 @@ export default function HeroSection({
           <p
             className="font-quote italic text-white/[0.72] text-center"
             style={{
-              fontSize: "21px",
+              fontSize: "clamp(24px, 2.5vw, 30px)",
               lineHeight: 1.65,
-              maxWidth: "500px",
+              maxWidth: "540px",
             }}
           >
             {missionShort}
@@ -146,7 +146,7 @@ export default function HeroSection({
       >
         <span
           className="font-jakarta"
-          style={{ fontSize: "7px", fontWeight: 300, color: "#E9C03A" }}
+          style={{ fontSize: "10px", fontWeight: 300, color: "#E9C03A" }}
         >
           Scroll to explore
         </span>

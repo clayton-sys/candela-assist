@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 export type ImpactRoomPublicPayload = {
-  org: {
+  org: {g
     name: string;
     slug: string;
     mission_short: string | null;
@@ -56,18 +56,15 @@ export async function assemblePublicPayload(
   slug: string
 ): Promise<ImpactRoomPublicPayload | null> {
   const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
   // ── Org + brand kit ────────────────────────────────────────────
   const { data: orgRow } = await supabase
-    .from("orgs")
-    .select(
-      "id, name, slug, mission_short, brand_kits(brand_primary, brand_accent, logo_url)"
-    )
-    .eq("slug", slug)
-    .single();
+    .from('orgs')
+    .select('*, brand_kits(*)')
+    .eq('slug', slug)
+    .single()
 
   if (!orgRow) return null;
 
@@ -115,7 +112,7 @@ export async function assemblePublicPayload(
     .from("programs")
     .select("id, name, display_order")
     .eq("org_id", orgId)
-    .eq("archived", false)
+    .eq("is_archived", false)
     .order("display_order", { ascending: true });
 
   const programs: ImpactRoomPublicPayload["programs"] = [];
@@ -129,7 +126,7 @@ export async function assemblePublicPayload(
         "id, period_label, outcomes, client_voice, change_description"
       )
       .eq("program_id", prog.id)
-      .order("created_at", { ascending: false })
+      .order("entered_at", { ascending: false })
       .limit(1)
       .single();
 
@@ -237,7 +234,7 @@ export async function assemblePublicPayload(
     org: {
       name: orgRow.name,
       slug: orgRow.slug ?? slug,
-      mission_short: orgRow.mission_short ?? null,
+      mission_short: orgRow.mission ?? null,
       logo_url: logoUrl,
       hero_photo_url: heroPhotoUrl,
       community_photo_url: communityPhotoUrl,
@@ -249,3 +246,4 @@ export async function assemblePublicPayload(
     closing_testimonial: closingTestimonial,
   };
 }
+

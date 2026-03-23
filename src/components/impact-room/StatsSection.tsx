@@ -79,7 +79,7 @@ export default function StatsSection({
         <p
           className="font-jakarta uppercase mb-9"
           style={{
-            fontSize: "8px",
+            fontSize: "12px",
             fontWeight: 300,
             letterSpacing: "6px",
             color: "#bbbbbb",
@@ -105,7 +105,7 @@ export default function StatsSection({
                 <span
                   className="font-display font-black"
                   style={{
-                    fontSize: "88px",
+                    fontSize: "clamp(72px, 8vw, 96px)",
                     color: INK,
                     letterSpacing: "-4px",
                     lineHeight: 1,
@@ -117,7 +117,7 @@ export default function StatsSection({
                   <span
                     className="font-jakarta ml-1"
                     style={{
-                      fontSize: "14px",
+                      fontSize: "18px",
                       fontWeight: 200,
                       color: GOLD,
                     }}
@@ -129,7 +129,7 @@ export default function StatsSection({
               <p
                 className="font-jakarta uppercase mt-2"
                 style={{
-                  fontSize: "8px",
+                  fontSize: "16px",
                   fontWeight: 300,
                   letterSpacing: "4px",
                   color: "#cccccc",
@@ -150,14 +150,14 @@ export default function StatsSection({
         {/* Pull quote */}
         {pullQuoteBold && (
           <div className="max-w-lg">
-            <p className="font-display font-bold" style={{ fontSize: "17px", color: INK }}>
+            <p className="font-display font-bold" style={{ fontSize: "24px", color: INK }}>
               {pullQuoteBold}
             </p>
             {pullQuoteThin && (
               <p
                 className="font-jakarta mt-2"
                 style={{
-                  fontSize: "13px",
+                  fontSize: "18px",
                   fontWeight: 300,
                   color: "#aaaaaa",
                   lineHeight: 1.7,
