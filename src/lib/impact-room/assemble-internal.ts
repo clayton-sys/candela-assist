@@ -90,7 +90,7 @@ export async function assembleInternalPayload(
     .from("programs")
     .select("id, name, display_order")
     .eq("org_id", orgId)
-    .eq("archived", false)
+    .eq("is_archived", false)
     .order("display_order", { ascending: true });
 
   const programs: ImpactRoomInternalPayload["programs"] = [];
@@ -106,7 +106,7 @@ export async function assembleInternalPayload(
       .from("program_data")
       .select("id, period_label, barriers")
       .eq("program_id", prog.id)
-      .order("created_at", { ascending: false })
+      .order("entered_at", { ascending: false })
       .limit(2);
 
     const currentData = dataRows?.[0] ?? null;
@@ -123,7 +123,7 @@ export async function assembleInternalPayload(
     const { data: currentMetrics } = await supabase
       .from("program_data_points")
       .select(
-        "value, metric_id, metric:program_metrics(metric_name, target, display_order, is_featured)"
+        "value, metric_id, metric:program_metrics(metric_name, target_value, display_order, is_featured)"
       )
       .eq("data_entry_id", currentData?.id ?? "__none__")
       .order("metric(display_order)", { ascending: true });
@@ -148,13 +148,13 @@ export async function assembleInternalPayload(
 
       const priorValue = priorMap.get(cm.metric_id) ?? null;
       const { delta, trend } = computeDelta(cm.value, priorValue);
-      const status = computeStatus(cm.value, metric.target);
+      const status = computeStatus(cm.value, metric.target_value);
       metricStatuses.push(status);
 
       metrics.push({
         label: metric.metric_name,
         value: cm.value ?? "—",
-        target: metric.target ?? null,
+        target: metric.target_value ?? null,
         prior_value: priorValue,
         delta,
         trend,
