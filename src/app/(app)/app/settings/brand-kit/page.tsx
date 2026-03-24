@@ -25,6 +25,7 @@ export default function BrandKitPage() {
   const [orgDisplayName, setOrgDisplayName] = useState("");
   const [whiteLabel, setWhiteLabel] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [heroPhotoUrl, setHeroPhotoUrl] = useState("");
 
   // Hex input state (allows typing partial values)
   const [hexInputs, setHexInputs] = useState({ primary: "", accent: "", success: "" });
@@ -70,6 +71,16 @@ export default function BrandKitPage() {
 
       setOrgId(orgUser.org_id);
       setPlan(org.plan);
+
+      // Load hero_photo_url from orgs table
+      const { data: orgData } = await supabase
+        .from("orgs")
+        .select("hero_photo_url")
+        .eq("id", orgUser.org_id)
+        .single();
+      if (orgData?.hero_photo_url) {
+        setHeroPhotoUrl(orgData.hero_photo_url);
+      }
 
       const { data: brandKit } = await supabase
         .from("brand_kits")
@@ -203,6 +214,15 @@ export default function BrandKitPage() {
         : await supabase.from("brand_kits").insert({ org_id: orgId, ...brandPayload });
 
       if (error) throw error;
+
+      // Save hero_photo_url to orgs table (not brand_kits)
+      if (heroPhotoUrl !== undefined) {
+        const { error: orgError } = await supabase
+          .from("orgs")
+          .update({ hero_photo_url: heroPhotoUrl || null })
+          .eq("id", orgId);
+        if (orgError) throw orgError;
+      }
 
       setLogoUrl(finalLogoUrl);
       setLogoFile(null);
@@ -357,6 +377,34 @@ export default function BrandKitPage() {
                   {logoError}
                 </p>
               )}
+            </section>
+
+            {/* Section 2.5 — Impact Room Hero Photo */}
+            <section>
+              <label
+                className="block font-['DM_Sans'] text-xs uppercase mb-2"
+                style={{ color: "rgba(237,232,222,0.5)", letterSpacing: "0.08em" }}
+              >
+                Impact Room Hero Photo
+              </label>
+              <input
+                type="text"
+                value={heroPhotoUrl}
+                onChange={(e) => setHeroPhotoUrl(e.target.value)}
+                placeholder="Paste an image URL (e.g. from Unsplash)"
+                className="w-full rounded-lg px-3 py-2.5 font-['DM_Sans'] text-sm outline-none transition-colors"
+                style={{
+                  background: "rgba(237,232,222,0.06)",
+                  border: "1px solid rgba(237,232,222,0.12)",
+                  color: "#EDE8DE",
+                }}
+              />
+              <p
+                className="font-['DM_Sans'] text-xs mt-1.5"
+                style={{ color: "rgba(237,232,222,0.3)" }}
+              >
+                This photo appears as the full-bleed background on your public Impact Room.
+              </p>
             </section>
 
             {/* Section 3 — Quick presets */}

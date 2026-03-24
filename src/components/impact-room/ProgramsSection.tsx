@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 
 const GOLD = "#E9C03A";
 
@@ -10,22 +10,86 @@ interface ProgramData {
   name_descriptor: string | null;
   name_bold: string;
   photo_url: string | null;
-  headline_metric: { label: string; value: string } | null;
+  headline_metric: { label: string; value: string; target?: string | null } | null;
   outcome_sentence: string | null;
   quote: { text: string; attribution: string } | null;
+}
+
+interface OrgPhoto {
+  id: string;
+  storage_url: string;
+  alt_text: string | null;
+  tags: string[];
 }
 
 interface ProgramsSectionProps {
   programs: ProgramData[];
   primaryColor: string;
+  orgPhotos?: OrgPhoto[];
+}
+
+function shuffleArray<T>(arr: T[]): T[] {
+  const shuffled = [...arr];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+function ProgressBar({ value, target }: { value: string; target: string }) {
+  const numValue = parseFloat(value.replace(/[^0-9.-]/g, ""));
+  const numTarget = parseFloat(target.replace(/[^0-9.-]/g, ""));
+  if (isNaN(numValue) || isNaN(numTarget) || numTarget === 0) return null;
+
+  const pct = Math.min(100, Math.round((numValue / numTarget) * 100));
+
+  return (
+    <div className="mt-3">
+      <div
+        className="w-full overflow-hidden"
+        style={{
+          height: 6,
+          borderRadius: 3,
+          backgroundColor: "rgba(237,232,222,0.3)",
+        }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: "100%",
+            borderRadius: 3,
+            backgroundColor: GOLD,
+            transition: "width 0.6s ease",
+          }}
+        />
+      </div>
+      <p
+        className="font-jakarta text-right mt-1"
+        style={{ fontSize: "0.7rem", color: GOLD }}
+      >
+        {pct}%
+      </p>
+    </div>
+  );
 }
 
 export default function ProgramsSection({
   programs,
   primaryColor,
+  orgPhotos = [],
 }: ProgramsSectionProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const rightPanelRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Shuffle org_photos once on mount — stable for the session
+  const shuffledPhotos = useMemo(() => shuffleArray(orgPhotos), []);
+
+  // Assign a photo to each program index (cycle if fewer photos than programs)
+  const getPhotoForIndex = (index: number): string | null => {
+    if (shuffledPhotos.length === 0) return null;
+    return shuffledPhotos[index % shuffledPhotos.length].storage_url;
+  };
 
   useEffect(() => {
     const observers: IntersectionObserver[] = [];
@@ -48,9 +112,11 @@ export default function ProgramsSection({
   if (programs.length === 0) return null;
 
   const active = programs[activeIndex] ?? programs[0];
-  const photoStyle = active.photo_url
+  // Priority: program-specific photo_url → shuffled org_photo → solid color
+  const activePhoto = active.photo_url || getPhotoForIndex(activeIndex);
+  const photoStyle = activePhoto
     ? {
-        backgroundImage: `url(${active.photo_url})`,
+        backgroundImage: `url(${activePhoto})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }
@@ -65,8 +131,11 @@ export default function ProgramsSection({
           style={{ zIndex: 1 }}
         >
           <div className="relative w-full h-full" style={photoStyle}>
-            {/* 50% dark overlay */}
-            <div className="absolute inset-0 bg-black/50" />
+            {/* Dark overlay for readability */}
+            <div
+              className="absolute inset-0"
+              style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+            />
 
             {/* Content */}
             <div className="relative z-10 h-full flex flex-col justify-end p-10 pb-16">
@@ -129,6 +198,12 @@ export default function ProgramsSection({
                   >
                     {active.headline_metric.label}
                   </p>
+                  {active.headline_metric.target && (
+                    <ProgressBar
+                      value={active.headline_metric.value}
+                      target={active.headline_metric.target}
+                    />
+                  )}
                 </div>
               )}
 
@@ -201,6 +276,12 @@ export default function ProgramsSection({
                     >
                       {prog.headline_metric.label}
                     </p>
+                    {prog.headline_metric.target && (
+                      <ProgressBar
+                        value={prog.headline_metric.value}
+                        target={prog.headline_metric.target}
+                      />
+                    )}
                   </div>
                 )}
               </div>

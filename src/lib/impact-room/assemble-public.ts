@@ -1,7 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 
+export type OrgPhoto = {
+  id: string;
+  storage_url: string;
+  alt_text: string | null;
+  tags: string[];
+};
+
 export type ImpactRoomPublicPayload = {
-  org: {g
+  org: {
     name: string;
     slug: string;
     mission_short: string | null;
@@ -10,6 +17,10 @@ export type ImpactRoomPublicPayload = {
     community_photo_url: string | null;
     primary_color: string;
     secondary_color: string;
+    ceo_message: string | null;
+    ceo_name: string | null;
+    ceo_title: string | null;
+    ceo_photo_url: string | null;
   };
   period_label: string;
   programs: Array<{
@@ -18,10 +29,11 @@ export type ImpactRoomPublicPayload = {
     name_descriptor: string | null;
     name_bold: string;
     photo_url: string | null;
-    headline_metric: { label: string; value: string } | null;
+    headline_metric: { label: string; value: string; target?: string | null } | null;
     outcome_sentence: string | null;
     quote: { text: string; attribution: string } | null;
   }>;
+  org_photos: OrgPhoto[];
   closing_testimonial: {
     text: string;
     attribution: string;
@@ -77,19 +89,21 @@ export async function assemblePublicPayload(
   const secondaryColor = brandKit?.brand_accent ?? "#E9C03A";
   const logoUrl = brandKit?.logo_url ?? null;
 
-  // ── Hero photo ─────────────────────────────────────────────────
-  let heroPhotoUrl: string | null = null;
-  try {
-    const { data: heroRow } = await supabase
-      .from("org_photos")
-      .select("url")
-      .eq("org_id", orgId)
-      .contains("tags", ["hero"])
-      .limit(1)
-      .single();
-    heroPhotoUrl = heroRow?.url ?? null;
-  } catch {
-    // Table may not exist yet
+  // ── Hero photo — prefer orgs.hero_photo_url, fall back to org_photos tag ──
+  let heroPhotoUrl: string | null = orgRow.hero_photo_url ?? null;
+  if (!heroPhotoUrl) {
+    try {
+      const { data: heroRow } = await supabase
+        .from("org_photos")
+        .select("storage_url")
+        .eq("org_id", orgId)
+        .contains("tags", ["hero"])
+        .limit(1)
+        .single();
+      heroPhotoUrl = heroRow?.storage_url ?? null;
+    } catch {
+      // Table may not exist yet
+    }
   }
 
   // ── Community photo ────────────────────────────────────────────
@@ -97,12 +111,31 @@ export async function assemblePublicPayload(
   try {
     const { data: communityRow } = await supabase
       .from("org_photos")
-      .select("url")
+      .select("storage_url")
       .eq("org_id", orgId)
       .contains("tags", ["community"])
       .limit(1)
       .single();
-    communityPhotoUrl = communityRow?.url ?? null;
+    communityPhotoUrl = communityRow?.storage_url ?? null;
+  } catch {
+    // Table may not exist yet
+  }
+
+  // ── All org_photos for scrollytelling ──────────────────────────
+  let orgPhotos: OrgPhoto[] = [];
+  try {
+    const { data: photoRows } = await supabase
+      .from("org_photos")
+      .select("id, storage_url, alt_text, tags")
+      .eq("org_id", orgId)
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+    orgPhotos = (photoRows ?? []).map((r) => ({
+      id: r.id,
+      storage_url: r.storage_url,
+      alt_text: r.alt_text,
+      tags: r.tags ?? [],
+    }));
   } catch {
     // Table may not exist yet
   }
@@ -135,12 +168,12 @@ export async function assemblePublicPayload(
     }
 
     // Headline metric (is_featured = true)
-    let headlineMetric: { label: string; value: string } | null = null;
+    let headlineMetric: { label: string; value: string; target?: string | null } | null = null;
     if (dataRow) {
       const { data: metricRow } = await supabase
         .from("program_data_points")
         .select(
-          "value, metric:program_metrics(metric_name)"
+          "value, metric:program_metrics(metric_name, target_value)"
         )
         .eq("data_entry_id", dataRow.id)
         .eq("metric.is_featured", true)
@@ -154,6 +187,7 @@ export async function assemblePublicPayload(
         headlineMetric = {
           label: metric?.metric_name ?? "Impact",
           value: metricRow.value,
+          target: metric?.target_value ?? null,
         };
       }
     }
@@ -163,12 +197,12 @@ export async function assemblePublicPayload(
     try {
       const { data: photoRow } = await supabase
         .from("org_photos")
-        .select("url")
+        .select("storage_url")
         .eq("org_id", orgId)
         .contains("tags", ["program", prog.id])
         .limit(1)
         .single();
-      programPhotoUrl = photoRow?.url ?? null;
+      programPhotoUrl = photoRow?.storage_url ?? null;
     } catch {
       // Table may not exist
     }
@@ -240,10 +274,14 @@ export async function assemblePublicPayload(
       community_photo_url: communityPhotoUrl,
       primary_color: primaryColor,
       secondary_color: secondaryColor,
+      ceo_message: orgRow.ceo_message ?? null,
+      ceo_name: orgRow.ceo_name ?? null,
+      ceo_title: orgRow.ceo_title ?? null,
+      ceo_photo_url: orgRow.ceo_photo_url ?? null,
     },
     period_label: periodLabel || "Current Period",
     programs,
+    org_photos: orgPhotos,
     closing_testimonial: closingTestimonial,
   };
 }
-

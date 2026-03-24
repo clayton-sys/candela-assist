@@ -4,6 +4,7 @@ import { assemblePublicPayload } from "@/lib/impact-room/assemble-public";
 import { assembleInternalPayload } from "@/lib/impact-room/assemble-internal";
 import { createClient } from "@/lib/supabase/server";
 import HeroSection from "@/components/impact-room/HeroSection";
+import CeoMessageSection from "@/components/impact-room/CeoMessageSection";
 import StatsSection from "@/components/impact-room/StatsSection";
 import ProgramsSection from "@/components/impact-room/ProgramsSection";
 import SpineNav from "@/components/impact-room/SpineNav";
@@ -121,6 +122,7 @@ export default async function ImpactRoomPage({ params, searchParams }: PageProps
   // Build spine nav sections
   const navSections = [
     { id: "section-hero", label: "Identity" },
+    ...(payload.org.ceo_message ? [{ id: "section-ceo", label: "Message" }] : []),
     { id: "section-stats", label: "Numbers" },
     { id: "section-programs", label: "Programs" },
   ];
@@ -143,6 +145,16 @@ export default async function ImpactRoomPage({ params, searchParams }: PageProps
         secondaryColor={payload.org.secondary_color}
       />
 
+      {/* Section 1.5 — CEO Message */}
+      {payload.org.ceo_message && (
+        <CeoMessageSection
+          ceoMessage={payload.org.ceo_message}
+          ceoName={payload.org.ceo_name ?? undefined}
+          ceoTitle={payload.org.ceo_title ?? undefined}
+          ceoPhotoUrl={payload.org.ceo_photo_url ?? undefined}
+        />
+      )}
+
       {/* Section 2 — Stats */}
       <StatsSection
         periodLabel={payload.period_label}
@@ -155,6 +167,7 @@ export default async function ImpactRoomPage({ params, searchParams }: PageProps
       <ProgramsSection
         programs={payload.programs}
         primaryColor={payload.org.primary_color}
+        orgPhotos={payload.org_photos}
       />
 
       {/* Section 4 — Closing Testimonial */}

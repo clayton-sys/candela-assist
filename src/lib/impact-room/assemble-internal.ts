@@ -2,6 +2,18 @@ import { createClient } from "@supabase/supabase-js";
 
 export type ProgramStatus = "on_track" | "at_risk" | "alert";
 
+export type PeriodMetric = {
+  label: string;
+  value: string;
+  target: string | null;
+};
+
+export type PeriodSnapshot = {
+  period_label: string;
+  barriers_summary: string | null;
+  metrics: PeriodMetric[];
+};
+
 export type ImpactRoomInternalPayload = {
   org: { name: string; slug: string };
   as_of: string;
@@ -26,6 +38,7 @@ export type ImpactRoomInternalPayload = {
       trend: "up" | "down" | "flat" | null;
     }>;
     barriers_summary: string | null;
+    periods: PeriodSnapshot[];
   }>;
   ticker_items: string[];
 };
@@ -101,13 +114,12 @@ export async function assembleInternalPayload(
   let priorParticipants: number | null = null;
 
   for (const prog of programRows ?? []) {
-    // Two most recent program_data entries (current + prior)
+    // All program_data entries ordered newest first
     const { data: dataRows } = await supabase
       .from("program_data")
       .select("id, period_label, barriers")
       .eq("program_id", prog.id)
-      .order("entered_at", { ascending: false })
-      .limit(2);
+      .order("entered_at", { ascending: false });
 
     const currentData = dataRows?.[0] ?? null;
     const priorData = dataRows?.[1] ?? null;
@@ -119,7 +131,40 @@ export async function assembleInternalPayload(
       priorPeriodLabel = priorData.period_label;
     }
 
-    // Current metrics
+    // ── Build periods array (all historical snapshots) ──────────
+    const periods: PeriodSnapshot[] = [];
+    for (const dr of dataRows ?? []) {
+      const { data: periodMetrics } = await supabase
+        .from("program_data_points")
+        .select(
+          "value, metric_id, metric:program_metrics(metric_name, target_value, display_order)"
+        )
+        .eq("data_entry_id", dr.id)
+        .order("metric(display_order)", { ascending: true });
+
+      const pMetrics: PeriodMetric[] = [];
+      for (const pm of periodMetrics ?? []) {
+        const metric = Array.isArray(pm.metric) ? pm.metric[0] : pm.metric;
+        if (!metric) continue;
+        pMetrics.push({
+          label: metric.metric_name,
+          value: pm.value ?? "—",
+          target: metric.target_value ?? null,
+        });
+      }
+
+      const barrierLine = dr.barriers
+        ? dr.barriers.split("\n")[0]?.replace(/^[-•*]\s*/, "").trim() || null
+        : null;
+
+      periods.push({
+        period_label: dr.period_label,
+        barriers_summary: barrierLine,
+        metrics: pMetrics,
+      });
+    }
+
+    // ── Current/prior metrics (backward compat) ─────────────────
     const { data: currentMetrics } = await supabase
       .from("program_data_points")
       .select(
@@ -128,7 +173,6 @@ export async function assembleInternalPayload(
       .eq("data_entry_id", currentData?.id ?? "__none__")
       .order("metric(display_order)", { ascending: true });
 
-    // Prior metrics
     const { data: priorMetrics } = await supabase
       .from("program_data_points")
       .select("value, metric_id")
@@ -196,6 +240,7 @@ export async function assembleInternalPayload(
       status: programStatus,
       metrics,
       barriers_summary: barriersSummary,
+      periods,
     });
 
     // Build ticker items from this program's metrics
