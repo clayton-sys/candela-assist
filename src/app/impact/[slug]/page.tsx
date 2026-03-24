@@ -9,6 +9,7 @@ import StatsSection from "@/components/impact-room/StatsSection";
 import ProgramsSection from "@/components/impact-room/ProgramsSection";
 import SpineNav from "@/components/impact-room/SpineNav";
 import TerminalView from "@/components/impact-room/TerminalView";
+import BoardView from "@/components/impact-room/BoardView";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -23,6 +24,13 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     const payload = await assembleInternalPayload(slug);
     return {
       title: payload ? `${payload.org.name} — Impact Terminal` : "Impact Terminal — Not Found",
+    };
+  }
+
+  if (mode === "board") {
+    const payload = await assemblePublicPayload(slug);
+    return {
+      title: payload ? `${payload.org.name} — Board Impact Summary` : "Board Summary — Not Found",
     };
   }
 
@@ -87,6 +95,21 @@ export default async function ImpactRoomPage({ params, searchParams }: PageProps
     }
 
     return <TerminalView payload={payload} slug={slug} />;
+  }
+
+  // ── Board mode ───────────────────────────────────────────────────
+  if (mode === "board") {
+    const payload = await assemblePublicPayload(slug);
+    if (!payload) {
+      return (
+        <div className="min-h-screen bg-[#1B2B3A] flex items-center justify-center">
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "14px", color: "rgba(255,255,255,0.4)" }}>
+            Organization not found.
+          </p>
+        </div>
+      );
+    }
+    return <BoardView payload={payload} />;
   }
 
   const payload = await assemblePublicPayload(slug);

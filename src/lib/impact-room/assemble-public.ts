@@ -30,6 +30,9 @@ export type ImpactRoomPublicPayload = {
     name_bold: string;
     photo_url: string | null;
     headline_metric: { label: string; value: string; target?: string | null } | null;
+    all_metrics: Array<{ label: string; value: string; target: string | null }>;
+    description: string | null;
+    barriers: string | null;
     outcome_sentence: string | null;
     quote: { text: string; attribution: string } | null;
   }>;
@@ -149,7 +152,7 @@ export async function assemblePublicPayload(
   // ── Programs ───────────────────────────────────────────────────
   const { data: programRows } = await supabase
     .from("programs")
-    .select("id, name, display_order")
+    .select("id, name, description, display_order")
     .eq("org_id", orgId)
     .eq("is_archived", false)
     .order("display_order", { ascending: true });
@@ -162,7 +165,7 @@ export async function assemblePublicPayload(
     const { data: dataRow } = await supabase
       .from("program_data")
       .select(
-        "id, period_label, outcomes, client_voice, change_description"
+        "id, period_label, outcomes, client_voice, change_description, barriers"
       )
       .eq("program_id", prog.id)
       .order("entered_at", { ascending: false })
@@ -197,6 +200,33 @@ export async function assemblePublicPayload(
         };
       }
     }
+
+    // All metrics for board mode
+    let allMetrics: Array<{ label: string; value: string; target: string | null }> = [];
+    if (dataRow) {
+      const { data: allMetricRows } = await supabase
+        .from("program_data_points")
+        .select(
+          "value, metric:program_metrics(metric_name, target_value, display_order)"
+        )
+        .eq("data_entry_id", dataRow.id)
+        .order("metric(display_order)", { ascending: true });
+
+      for (const row of allMetricRows ?? []) {
+        const metric = Array.isArray(row.metric) ? row.metric[0] : row.metric;
+        if (!metric) continue;
+        allMetrics.push({
+          label: metric.metric_name,
+          value: row.value ?? "—",
+          target: metric.target_value ?? null,
+        });
+      }
+    }
+
+    // Barriers
+    const barriers = dataRow?.barriers
+      ? dataRow.barriers.split("\n")[0]?.replace(/^[-•*]\s*/, "").trim() || null
+      : null;
 
     // Program photo
     let programPhotoUrl: string | null = null;
@@ -243,6 +273,9 @@ export async function assemblePublicPayload(
       name_bold: bold,
       photo_url: programPhotoUrl,
       headline_metric: headlineMetric,
+      all_metrics: allMetrics,
+      description: prog.description ?? null,
+      barriers,
       outcome_sentence: outcomeSentence,
       quote,
     });
