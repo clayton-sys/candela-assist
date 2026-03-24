@@ -85,7 +85,13 @@ export async function assembleInternalPayload(
 ): Promise<ImpactRoomInternalPayload | null> {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      global: {
+        fetch: (url: string | URL | Request, init?: RequestInit) =>
+          fetch(url, { ...init, cache: 'no-store' }),
+      },
+    }
   );
 
   // ── Org ────────────────────────────────────────────────────────
