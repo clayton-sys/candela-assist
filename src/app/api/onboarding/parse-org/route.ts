@@ -1,8 +1,8 @@
 // SECURITY CHECKLIST
-// [x] Auth: requireAuth() called first
-// [x] Org: requireOrgMember() called
-// [x] Rate limit: Upstash applied (parse-org, 10 requests per org per hour)
-// [x] Input: Zod schema validated
+// [x] Auth: requireAuth() called
+// [x] Org: N/A on initial parse (org doesn't exist yet)
+// [x] Rate limit: Upstash applied — per IP per hour
+// [x] Input: Zod schema validated (max 10,000 chars on paste)
 // [x] Response: no raw DB rows exposed
 
 import { NextRequest, NextResponse } from "next/server";
@@ -16,8 +16,7 @@ export const dynamic = "force-dynamic";
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const InputSchema = z.object({
-  raw_text: z.string().min(50).max(15000),
-  org_id: z.string().uuid(),
+  raw_text: z.string().min(50, "Paste at least 50 characters").max(10000, "Maximum 10,000 characters"),
 });
 
 export async function POST(req: NextRequest) {
@@ -40,21 +39,9 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    const { raw_text, org_id } = parsed.data;
+    const { raw_text } = parsed.data;
 
-    // ── Org: requireOrgMember() ──────────────────────────────────
-    const { data: membership } = await supabase
-      .from("org_users")
-      .select("id")
-      .eq("org_id", org_id)
-      .eq("user_id", user.id)
-      .single();
-
-    if (!membership) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    // ── Rate limit: Upstash (parse-org, 10 per org per hour) ────
+    // ── Rate limit: Upstash (per IP, 10 per hour) ───────────────
     const url = process.env.UPSTASH_REDIS_REST_URL;
     const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -62,17 +49,21 @@ export async function POST(req: NextRequest) {
       const { Redis } = await import("@upstash/redis");
       const { Ratelimit } = await import("@upstash/ratelimit");
 
+      const forwarded = req.headers.get("x-forwarded-for");
+      const ip =
+        (forwarded ? forwarded.split(",")[0].trim() : req.headers.get("x-real-ip")) ?? "unknown";
+
       const redis = new Redis({ url, token });
       const limiter = new Ratelimit({
         redis,
         limiter: Ratelimit.slidingWindow(10, "1 h"),
-        prefix: "rl:parse-org",
+        prefix: "rl:onboard-parse-org",
       });
 
-      const { success } = await limiter.limit(`parse-org:${org_id}`);
+      const { success } = await limiter.limit(`onboard-parse-org:${ip}`);
       if (!success) {
         return NextResponse.json(
-          { error: "Rate limit exceeded. 10 parse requests per org per hour." },
+          { error: "Rate limit exceeded. Try again in a little while." },
           { status: 429 }
         );
       }
@@ -89,7 +80,7 @@ export async function POST(req: NextRequest) {
     const content = message.content[0];
     const responseText = content.type === "text" ? content.text.trim() : "";
 
-    // Strip markdown fences if Haiku wraps them anyway
+    // Strip markdown fences if Haiku wraps them
     const cleaned = responseText
       .replace(/^```json\s*/i, "")
       .replace(/^```\s*/i, "")

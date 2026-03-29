@@ -1,9 +1,9 @@
 // SECURITY CHECKLIST
-// [x] Auth: requireAuth() called first
+// [x] Auth: requireAuth() called
 // [x] Org: requireOrgMember() called
-// [x] Rate limit: Upstash applied (parse-data, 10 requests per org per hour)
-// [x] Input: Zod schema validated
-// [x] Response: no raw DB rows exposed
+// [x] Rate limit: Upstash applied — per org per hour
+// [x] Input: Zod schema (max 10,000 chars, plus org_id UUID)
+// [x] Response: no raw DB rows
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -16,24 +16,8 @@ export const dynamic = "force-dynamic";
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const InputSchema = z.object({
-  raw_text: z.string().min(20).max(20000),
+  raw_text: z.string().min(20, "Paste at least 20 characters").max(10000, "Maximum 10,000 characters"),
   org_id: z.string().uuid(),
-  period_label: z.string().min(1).max(100),
-  period_start: z.string().date(),
-  period_end: z.string().date(),
-  programs: z.array(
-    z.object({
-      id: z.string().uuid(),
-      name: z.string(),
-      metrics: z.array(
-        z.object({
-          id: z.string().uuid(),
-          metric_name: z.string(),
-          unit: z.string(),
-        })
-      ),
-    })
-  ),
 });
 
 export async function POST(req: NextRequest) {
@@ -56,7 +40,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    const { raw_text, org_id, programs } = parsed.data;
+    const { raw_text, org_id } = parsed.data;
 
     // ── Org: requireOrgMember() ──────────────────────────────────
     const { data: membership } = await supabase
@@ -70,7 +54,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // ── Rate limit: Upstash (parse-data, 10 per org per hour) ───
+    // ── Rate limit: Upstash (per org, 10 per hour) ──────────────
     const url = process.env.UPSTASH_REDIS_REST_URL;
     const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -82,24 +66,39 @@ export async function POST(req: NextRequest) {
       const limiter = new Ratelimit({
         redis,
         limiter: Ratelimit.slidingWindow(10, "1 h"),
-        prefix: "rl:parse-data",
+        prefix: "rl:onboard-parse-data",
       });
 
-      const { success } = await limiter.limit(`parse-data:${org_id}`);
+      const { success } = await limiter.limit(`onboard-parse-data:${org_id}`);
       if (!success) {
         return NextResponse.json(
-          { error: "Rate limit exceeded. 10 parse requests per org per hour." },
+          { error: "Rate limit exceeded. Try again in a little while." },
           { status: 429 }
         );
       }
     }
 
-    // ── AI extraction (single Haiku call) ────────────────────────
+    // ── Fetch existing programs + metrics from DB ────────────────
+    const { data: programs } = await supabase
+      .from("programs")
+      .select("id, name, program_metrics(id, metric_name, unit)")
+      .eq("org_id", org_id)
+      .eq("is_archived", false)
+      .order("display_order", { ascending: true });
+
+    if (!programs || programs.length === 0) {
+      return NextResponse.json(
+        { error: "No programs found. Complete org setup first." },
+        { status: 400 }
+      );
+    }
+
+    // Build the programs context for the AI
     const programsJson = JSON.stringify(
       programs.map((p) => ({
         program_id: p.id,
         name: p.name,
-        metrics: p.metrics.map((m) => ({
+        metrics: (p.program_metrics ?? []).map((m: { id: string; metric_name: string; unit: string | null }) => ({
           metric_id: m.id,
           metric_name: m.metric_name,
           unit: m.unit,
@@ -109,6 +108,7 @@ export async function POST(req: NextRequest) {
       2
     );
 
+    // ── AI extraction (single Haiku call) ────────────────────────
     const message = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 4096,
